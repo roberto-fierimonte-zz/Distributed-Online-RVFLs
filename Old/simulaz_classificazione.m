@@ -1,0 +1,38 @@
+K=1500;
+lambda=10;
+k=10;
+c = cvpartition(size(X,1),'kfold',k);
+fprintf('Avvio simulazione di apprendimento distribuito...\n');
+fprintf('Effettuo una %i-fold cross-validation per testare la bontà dell algoritmo\n\n',k);
+tic;
+fprintf('Inizializzo la rete RVFL, K = %i, lambda = %e\n',K,lambda);
+fprintf('Genero casualmente i pesi e le soglie dell espansione funzionale...\n');
+[coeff,soglie]=genera_rete(K,size(X,2));
+net=struct('soglie',soglie,'coeff',coeff,'dimensione',K,'lambda',lambda);
+fprintf('Rete inizializzata, trascorsi %.2f secondi\n\n', toc);
+errfract=[0,0];
+for i = 1:c.NumTestSets
+    fprintf('Fold: %i\n', i);
+    X_train=X(c.training(i),:);
+    Y_train=Y(c.training(i),:);
+    X_test=X(c.test(i),:);
+    Y_test=Y(c.test(i),:);
+    fprintf('Calcolo dei parametri in corso...\n');
+    tic;
+    [batchsol,batcherror]=rvflregmod(X_train,Y_train,net);
+    fprintf('Calcolo dei parametri in maniera non distribuita completato,trascorsi %.2f secondi\n', toc);
+    tic;
+    [distrsol,distrout,distrNMSE,distrdelta]=distributed_regression3mod(X_train,Y_train,net,8,ones(8)/8,5);
+    fprintf('Calcolo dei parametri in maniera distribuita completato,trascorsi %.2f secondi\n', toc);
+    [batchexit,batcherr,batcherr2]=test_reg(X_test,Y_test,net,batchsol);
+    [distrexit,distrerr,distrerr2]=test_reg(X_test,Y_test,net,distrsol);
+    NMSE=NMSE+[batcherr,distrerr];
+    NSR=NSR+[batcherr2,distrerr2];
+    fprintf('Prestazioni di test : NMSE:      NSR:\n\n');
+    fprintf('Dati non distribuiti: %.4f     %.4f\n\n',batcherr,batcherr2);
+    fprintf('Dati distribuiti:     %.4f     %.4f\n\n',distrerr,distrerr2);
+end
+fprintf('                      Media NMSE:   Media NSR:\n\n');
+fprintf('Dati non distribuiti: %.4f        %.4f\n\n',NMSE(1)/k,NSR(1)/k);
+fprintf('Dati distribuiti:     %.4f        %.4f\n\n',NMSE(2)/k,NSR(2)/k);
+clear;

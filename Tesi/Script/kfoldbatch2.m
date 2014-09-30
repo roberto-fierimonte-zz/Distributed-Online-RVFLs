@@ -1,0 +1,33 @@
+c = cvpartition(size(X,1),'kfold',k);
+t1temp=0;t2temp=0;t3temp=0;t4temp=0;NMSEtemp=[0,0,0,0];NSRtemp=[0,0,0,0];
+for ii = 1:c.NumTestSets
+    X_train=X(c.training(ii),:);
+    Y_train=Y(c.training(ii),:);
+    X_test=X(c.test(ii),:);
+    Y_test=Y(c.test(ii),:);
+    tic;
+    batchsol=rvflreg(X_train,Y_train,net);
+    t1temp=t1temp+toc;
+    tic;
+    distrsol=distributed_regression(X_train,Y_train,net,W,n_iter);
+    t2temp=t2temp+toc;
+    tic;
+    Robsol=distributed_regressionRmod(X_train,Y_train,net,W,n_iter);
+    t3temp=t3temp+toc;
+    tic;
+    [testNMSE,testNSR]=distributed_regressionsenzaconsensus(X_train,Y_train,X_test,Y_test,net,n_nodi);
+    t4temp=t4temp+toc;
+    [Roberr,Roberr2]=test_reg(X_test,Y_test,net,Robsol);
+    [batcherr,batcherr2]=test_reg(X_test,Y_test,net,batchsol);
+    [distrerr,distrerr2]=test_reg(X_test,Y_test,net,distrsol);
+    NMSEtemp=NMSEtemp+[batcherr,distrerr,testNMSE,Roberr];
+    NSRtemp=NSRtemp+[batcherr2,distrerr2,testNSR,Roberr2];
+    t=t+[t1temp,t2temp,t3temp,t4temp];
+    fprintf('%i percento\n',((jj-1)*k+ii)*100/(k*n));
+end
+fprintf('Riepilogo simulazione:\n---------------------------------------------------------------------------------------------------------------\n');
+fprintf('                                    Media NMSE:   Media NSR:   Media Training Time:\n\n');
+fprintf('Dati non distribuiti:               %.4f        %.4f     %.4f\n\n',NMSE(1)/k,NSR(1)/k,t1temp/k);
+fprintf('Dati distribuiti con consensus S:   %.4f        %.4f     %.4f\n\n',NMSE(2)/k,NSR(2)/k,t2temp/k);
+fprintf('Dati distribuiti con consensus R:   %.4f        %.4f     %.4f\n\n',NMSE(4)/k,NSR(4)/k,t3temp/k);
+fprintf('Dati distribuiti senza consensus:   %.4f        %.4f     %.4f\n\n',NMSE(3)/k,NSR(3)/k,t4temp/k);
