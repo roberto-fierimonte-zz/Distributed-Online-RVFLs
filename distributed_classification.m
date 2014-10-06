@@ -1,18 +1,19 @@
-function [soluzione,errore] = distributed_classification(X,Y,rete,W,n_iter)
-%DISTRIBUTED_CLASSIFICATION definisce un algoritmo di classificazione distribuito
-%in cui per ogni nodo del sistema la macchina per l'apprendimento è definita 
-%da una Random-Vector Functional-Link e i parametri sono determinati attraverso 
-%un algortimo di consensus.
+function soluzione = distributed_classification(X,Y,rete,W,n_iter)
+%DISTRIBUTED_CLASSIFICATION definisce un algoritmo per problemi di
+%classificazione in sistemi distribuiti in cui per ogni nodo del sistema la
+%macchina per l'apprendimento è definita da una RVFL e i parametri sono 
+%attraverso un algortimo di consensus.
 %
 %Input: X: matrice p x n dei campioni di ingresso (p campioni di dimensione n)
-%       Y: vettore dei campioni di uscita
-%       rete:
+%       Y: matrice p x m dei campioni di uscita
+%       rete: struttura che contiene le informazioni relative alla RVFL
+%           (dimensione dell'espansione, pesi e soglie della combinazione
+%           affine e parametro di regolarizzazione)
 %       W: matrice dei pesi associati al sistema distribuito (deve soddisfare
 %          opportune proprietà)
 %       n_iter: intero che definisce il numero di iterazioni del consensus
 %
-%Output: soluzione:
-%        errore:
+%Output: soluzione:matrice K x m dei parametri del modello
 
 %Passo 1: estraggo le dimensioni del dataset
     pX=size(X,1);
@@ -26,20 +27,9 @@ function [soluzione,errore] = distributed_classification(X,Y,rete,W,n_iter)
     if pX ~= pY
         error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)',pX,pY);
     end
-    
-%Passo 2:
-    coeff = rete.coeff;
-    soglie = rete.soglie;
-    K = rete.dimensione;
-    lambda = rete.lambda;
-    
-    esp=(exp(-bsxfun(@plus,X*coeff',soglie'))+1).^-1;
-    
-%Inizializzo gli output a valori nulli
-    beta = zeros(K,m,n_nodi);
-    gamma = zeros(K,m,n_nodi);
 
-%Definisco delle variabili ausiliarie per l'uscita
+%Passo 2: converto i valori della variabile di uscita in valori booleani 
+%utilizzando variabili ausiiarie
     aus=dummyvar(Y);
         
 %Passo 3: distribuisco i dati nel sistema
@@ -51,17 +41,17 @@ function [soluzione,errore] = distributed_classification(X,Y,rete,W,n_iter)
         pX_loc=size(X_local,1);
         
 %Passo 4: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema       
-        scal = X_local*coeff';
-        aff = bsxfun(@plus,scal,soglie');
+        scal = X_local*rete.coeff';
+        aff = bsxfun(@plus,scal,rete.soglie');
         exit = (exp(-aff)+1).^-1;
         A = exit;
         
 %Passo 5: calcolo il vettore dei parametri relativo a ogni nodo risolvendo 
 %il sistema lineare
-        if pX_loc >= K
-            iniziale= (A'*A + lambda*eye(K))\(A'*Y_local);
+        if pX_loc >= rete.dimensione
+            iniziale= (A'*A + rete.lambda*eye(rete.dimensione))\(A'*Y_local);
         else
-            iniziale= A'/(lambda*eye(pX_loc)+A*A')*Y_local;
+            iniziale= A'/(rete.lambda*eye(pX_loc)+A*A')*Y_local;
         end
 
 %Passo 6: applico l'algoritmo del consensus per aggiornare i parametri di 
@@ -92,12 +82,21 @@ function [soluzione,errore] = distributed_classification(X,Y,rete,W,n_iter)
 
     end
         
-%Ritorno gli output  
-    for dd=1:n_nodi
-        beta(:,:,dd)=iniziale{dd};
-        gamma(:,:,dd)=corrente{dd};
+%Passo 6: controllo se i nodi hanno raggiunto il consenso e restituisco il
+%vettore dei parametri  
+    if n_iter==0
+        soluzione=iniziale{1};
+    else
+        beta = zeros(rete.dimensione,m,n_nodi);
+        gamma = zeros(rete.dimensione,m,n_nodi);
+        for dd=1:n_nodi
+            beta(:,:,dd)=iniziale{dd};
+            gamma(:,:,dd)=corrente{dd};
+        end
+        
+        beta_avg_real = mean(beta, 3);
+        assert(all(all(all((abs(repmat(beta_avg_real, 1, 1, size(gamma, 3)) - gamma) <= 10^-6)))), 'Errore: consenso non raggiunto :(');
+        
+        soluzione=gamma(:,:,1);
     end
-    checkclass;
-    soluzione=gamma(:,:,1);
-    errore=1/(pX)*sum(sum((vec2ind((esp*soluzione)'))'~=Y));
 end

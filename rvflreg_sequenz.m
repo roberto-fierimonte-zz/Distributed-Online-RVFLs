@@ -1,18 +1,20 @@
 function [soluzione,K1] = rvflreg_sequenz(K0,X1,Y1,sol_prec,rete)
 %RVFLREG_SEQUENZ definisce un algoritmo di addestramento per una rete neurale di
 %tipo random vector functional-link da utilizzare in problemi di regressione
-%in cui siano forniti nuovi dati e si desideri aggiornare la stima dei
-%parametri
+%e classificazione binaria in cui siano forniti nuovi dati e si desideri 
+%aggiornare la stima dei parametri
 %
-%Input: K0:
+%Input: K0: pseudoinversa (K x K) relativa all'iterazione precedente
 %       X1: matrice p1 x n dei nuovi campioni di ingresso
 %       Y1: matrice p1 x n dei nuovi campioni di uscita
-%       sol_prec: vettore (K + n) x m dei parametri della rete
-%           stimati attraverso i campioni già noti
-%       rete: struttura contenente i parametri aleatori della rete
+%       sol_prec: vettore dei parametri della rete stimati attraverso i
+%           campioni già noti
+%       rete: struttura che contiene le informazioni relative alla RVFL
+%           (dimensione dell'espansione, pesi e soglie della combinazione
+%           affine e parametro di regolarizzazione)
 %
-%Output: soluzione: matrice (n + K) x m dei parametri della rete RVFL
-%        K1:
+%Output: soluzione: vettore dei parametri del modello (K parametri)
+%        K1: pseudoinversa (K x K) relativa all'iterazione corrente
     
 %Passo 1: estraggo le dimensioni del nuovo dataset
     pX1=size(X1,1);
@@ -33,6 +35,6 @@ function [soluzione,K1] = rvflreg_sequenz(K0,X1,Y1,sol_prec,rete)
     
     K1=(K0+A1'*A1);
     
-%Restituisco i risultati
+%Passo 4: aggiorno la soluzione utilizzando i nuovi dati
     soluzione=sol_prec+K1\A1'*(Y1-A1*sol_prec);
 end
