@@ -6,7 +6,7 @@ function [soluzione,K1] = rvflclass_sequenz(K0,X1,Y1,sol_prec,rete)
 %
 %Input: K0: pseudoinversa (K x K) relativa all'iterazione precedente
 %       X1: matrice p1 x n dei nuovi campioni di ingresso
-%       Y1: matrice p1 x n dei nuovi campioni di uscita
+%       Y1: matrice p1 x m dei nuovi campioni di uscita
 %       sol_prec: matrice K x m dei parametri della rete stimati attraverso
 %           i campioni già noti
 %       rete: struttura che contiene le informazioni relative alla RVFL

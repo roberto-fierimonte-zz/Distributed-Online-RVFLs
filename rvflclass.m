@@ -31,7 +31,7 @@ function soluzione = rvflclass(X,Y,rete)
     exit = (exp(-aff)+1).^-1;
     A = exit;
     
-%Passo 4: calcolo il vettore dei parametri risolvendo il sistema lineare e
+%Passo 4: calcolo la matrice dei parametri risolvendo il sistema lineare e
 %discriminando il procedimento in base alla dimensione del dataset
     if pX>=rete.dimensione
         soluzione=(A'*A + rete.lambda*eye(rete.dimensione))\(A'*aus);
