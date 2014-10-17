@@ -20,7 +20,7 @@ function [soluzione,K1] = distributed_regressiononline(K0,X1,Y1,sol_prec,rete,W,
 %       n_iter: intero che definisce il numero di iterazioni del consensus
 %
 %Output: soluzione: vettore dei parametri del modello (K parametri)
-%        K1: pseudoinversa (K x K) distribuita elativa all'iterazione 
+%        K1: pseudoinversa (K x K) rdistribuita elativa all'iterazione 
 %           corrente
 
 %Passo 1: estraggo le dimensioni del dataset e il numero di nodi

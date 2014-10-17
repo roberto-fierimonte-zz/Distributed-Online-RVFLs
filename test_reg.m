@@ -1,6 +1,6 @@
 function [NMSE,NSR] = test_reg(X_test,Y_test,rete,beta)
-%TEST_REG misura l'errore di regressione sul test set del modello definito 
-%da una RVFL
+%TEST_REG misura l'errore di regressione del modello definito da una RVFL
+%sul test set
 %
 %Input: X_test: matrice p x n dei campioni di test (p campioni di
 %           dimensione n)

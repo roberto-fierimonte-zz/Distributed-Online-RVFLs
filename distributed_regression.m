@@ -13,7 +13,7 @@ function soluzione = distributed_regression(X,Y,rete,W,n_iter)
 %          opportune proprietà)
 %       n_iter: intero che definisce il numero di iterazioni del consensus
 %
-%Output: soluzione: vettore dei parametri del modello (K parametri)
+%Output: soluzione:vettore dei parametri del modello (K parametri)
 
 %Passo 1: estraggo le dimensioni del dataset
     pX=size(X,1);

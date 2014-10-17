@@ -1,6 +1,6 @@
 function [errore] = test_classbin(X_test,Y_test,rete,beta)
-%TEST_CLASSBIN misura l'errore di classificazione binaria sul test set del
-%modello definito da una RVFL sul test set
+%TEST_CLASSBIN misura l'errore di classificazione binaria del modello 
+%definito da una RVFL sul test set
 %
 %Input: X_test: matrice p x n dei campioni di test (p campioni di
 %           dimensione n)
@@ -10,7 +10,7 @@ function [errore] = test_classbin(X_test,Y_test,rete,beta)
 %           affine e parametro di regolarizzazione)
 %       beta: vettore dei parametri associati al modello
 %
-%Output: errore: scalare che misura la frazione di campioni erroneamente
+%Output: Errore: scalare che misura la frazione di campioni erroneamente
 %           classificati sul totale dei campioni di test
 
 pX=size(X_test,1);

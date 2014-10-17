@@ -13,7 +13,7 @@ function soluzione = distributed_classification(X,Y,rete,W,n_iter)
 %          opportune proprietà)
 %       n_iter: intero che definisce il numero di iterazioni del consensus
 %
-%Output: soluzione: matrice K x m dei parametri del modello
+%Output: soluzione:matrice K x m dei parametri del modello
 
 %Passo 1: estraggo le dimensioni del dataset
     pX=size(X,1);
