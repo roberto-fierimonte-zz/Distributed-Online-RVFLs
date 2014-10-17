@@ -1,4 +1,4 @@
-function soluzione = distributed_regression(X,Y,rete,W,n_iter)
+function soluzione = distributed_regressionR(X,Y,rete,W,n_iter)
 %DISTRIBUTED_REGRESSION definisce un algoritmo per problemi di regressione
 %e classificazione binaria in sistemi distribuiti in cui per ogni nodo del 
 %sistema la macchina per l'apprendimento è definita da una RVFL e i 
@@ -25,6 +25,9 @@ function soluzione = distributed_regression(X,Y,rete,W,n_iter)
     if pX ~= pY
         error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)',pX,pY);
     end
+
+%Inizializzo gli output a valori nulli
+    beta = zeros(K,n_nodi);
     
 %Passo 2: distribuisco i dati nel sistema
     spmd (n_nodi)
@@ -32,53 +35,56 @@ function soluzione = distributed_regression(X,Y,rete,W,n_iter)
         Y_dist=codistributed(Y, codistributor1d(1));
         X_local=getLocalPart(X_dist);
         Y_local=getLocalPart(Y_dist);
-        pX_loc=size(X_local,1);
         
 %Passo 3: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema       
         scal = X_local*rete.coeff';
         aff = bsxfun(@plus,scal,rete.soglie');
         exit = (exp(-aff)+1).^-1;
         A = exit;
+        
+        K = (A'*A + rete.lambda*eye(rete.dimensione));
+        q = A'*Y_local;
 
 %Passo 4: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
-%il sistema lineare        
-        if pX_loc >= rete.dimensione
-            iniziale= (A'*A + rete.lambda*eye(rete.dimensione))\(A'*Y_local);
-        else
-            iniziale= A'/(rete.lambda*eye(pX_loc)+A*A')*Y_local;
-        end
+%il sistema lineare 
+        iniziale = K\q;
         
-%Passo 5: applico l'algoritmo del consensus per aggiornare i parametri di 
-%ogni nodo
-        corrente=iniziale;
-        
+%Passo 5: applico l'algoritmo del consensus per aggiornare la matrice e il  
+%vettore di stato di ogni nodo
         neigh = W(labindex, :);
         neigh_idx = find(neigh > 0);
         neigh_idx(neigh_idx == labindex) = [];
         
         for ii = 1:n_iter
             
-            new = neigh(labindex)*corrente;
+            newK = neigh(labindex)*K;
+            newq = neigh(labindex)*q;
             
-            labSend(corrente, neigh_idx);
+            labSend(K, neigh_idx,0);
+            labSend(q, neigh_idx,1);
             
             for jj = 1:length(neigh_idx)
                 
-                while(~labProbe(neigh_idx(jj)))
+                while(~labProbe(neigh_idx(jj),0))
                 end
-                    
-                new = new + neigh(neigh_idx(jj))*labReceive(neigh_idx(jj));
+                   
+                newK = newK + neigh(neigh_idx(jj))*labReceive(neigh_idx(jj),0);
+                newq = newq + neigh(neigh_idx(jj))*labReceive(neigh_idx(jj),1);
             end
             
-            corrente = new;
+            K = newK;
+            q = newq;
+            
         end
+        
+        corrente = K\q;
     end
     
 %Passo 6: controllo se i nodi hanno raggiunto il consenso e restituisco il
 %vettore dei parametri
     if n_iter==0
         soluzione=iniziale{1};
-    else
+    else     
         
     gamma = zeros(rete.dimensione,n_nodi); 
     beta = zeros(rete.dimensione,n_nodi);
@@ -87,10 +93,10 @@ function soluzione = distributed_regression(X,Y,rete,W,n_iter)
             beta(:,dd)=iniziale{dd};
             gamma(:,dd)=corrente{dd};
         end
-
+        
         beta_avg_real = mean(beta, 2);
         assert(all(all((abs(repmat(beta_avg_real, 1, size(gamma, 2)) - gamma) <= 10^-6))), 'Errore: consenso non raggiunto :(');
-
+        
         soluzione=gamma(:,1);
     end
 end

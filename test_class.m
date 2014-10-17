@@ -1,6 +1,6 @@
 function [errore] = test_class(X_test,Y_test,rete,beta)
-%TEST_CLASS misura l'errore di classificazione del modello definito da una
-%RVFL sul test set
+%TEST_CLASS misura l'errore di classificazione sul test set
+%del modello definito da una RVFL
 %
 %Input: X_test: matrice p x n dei campioni di test (p campioni di
 %           dimensione n)
@@ -10,7 +10,7 @@ function [errore] = test_class(X_test,Y_test,rete,beta)
 %           affine e parametro di regolarizzazione)
 %       beta: vettore dei parametri associati al modello
 %
-%Output: Errore: scalare che misura la frazione di campioni erroneamente
+%Output: errore: scalare che misura la frazione di campioni erroneamente
 %           classificati sul totale dei campioni di test
 
 pX=size(X_test,1);

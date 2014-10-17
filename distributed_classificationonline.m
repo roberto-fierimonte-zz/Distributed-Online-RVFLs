@@ -19,7 +19,7 @@ function [soluzione,K1] = distributed_classificationonline(K0,X1,Y1,sol_prec,ret
 %       n_iter: intero che definisce il numero di iterazioni del consensus
 %
 %Output: soluzione: matrice K x m dei parametri del modello
-%        K1: pseudoinversa (K x K) rdistribuita elativa all'iterazione 
+%        K1: pseudoinversa (K x K) distribuita elativa all'iterazione 
 %           corrente
 
 %Passo 1: estraggo le dimensioni del dataset
