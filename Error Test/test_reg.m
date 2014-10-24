@@ -10,13 +10,13 @@ function [NMSE,NSR] = test_reg(X_test,Y_test,rete,beta)
 %           affine e parametro di regolarizzazione)
 %       beta: vettore dei parametri associati al modello
 %
-%Output: NMSE: scalare che misura l'errore in media quadratica commesso sul
-%           test set e normalizzato rispetto alla varianza
+%Output: NMSE: scalare che misura il rapporto tra l'errore quadratico e la
+%           varianza del test set
 %        NSR: scalare che misura il rapporto rumore-segnale sul test set
 
 esp=(exp(-bsxfun(@plus,X_test*rete.coeff',rete.soglie'))+1).^-1;
 uscita=esp*beta;
-NMSE=sum((uscita-Y_test).^2)/(size(X_test,1)*var(Y_test));
+NMSE=sum(((uscita-Y_test).^2))/(size(X_test,1)*var(Y_test));
 NSR=10*log10(sum((Y_test-uscita).^2)/sum(Y_test.^2));
 end
 

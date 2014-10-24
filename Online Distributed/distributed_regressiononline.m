@@ -44,8 +44,7 @@ function [soluzione,K1] = distributed_regressiononline(K0,X1,Y1,sol_prec,rete,W,
 %Passo 3: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema       
         scal1 = X1_local*rete.coeff';
         aff1 = bsxfun(@plus,scal1,rete.soglie');
-        exit1=(exp(-aff1)+1).^-1;
-        A1 = exit1;
+        A1=(exp(-aff1)+1).^-1;
         
         K1=(K0+A1'*A1);
 

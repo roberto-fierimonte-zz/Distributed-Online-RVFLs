@@ -34,8 +34,7 @@ function [soluzione,K1] = rvflclass_sequenz(K0,X1,Y1,sol_prec,rete)
 %relativamente ai nuovi campioni
     scal1 = X1*rete.coeff';
     aff1 = bsxfun(@plus,scal1,rete.soglie');
-    exit1 = (exp(-aff1)+1).^-1;
-    A1 = exit1;
+    A1 = (exp(-aff1)+1).^-1;
 
     K1=(K0+A1'*A1);
 

@@ -24,8 +24,7 @@ function soluzione= rvflreg(X,Y,rete)
 %Passo 2: determino la matrice delle uscite dell'espansione funzionale
     scal=X*rete.coeff';
     aff = bsxfun(@plus,scal,rete.soglie');
-    exit = (exp(-aff)+1).^-1;
-    A = exit;
+    A = (exp(-aff)+1).^-1;
     
 %Passo 3: calcolo il vettore dei parametri risolvendo il sistema lineare e
 %discriminando il procedimento in base alla dimensione del dataset

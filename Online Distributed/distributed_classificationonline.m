@@ -22,7 +22,8 @@ function [soluzione,K1] = distributed_classificationonline(K0,X1,Y1,sol_prec,ret
 %        K1: pseudoinversa (K x K) distribuita elativa all'iterazione 
 %           corrente
 
-%Passo 1: estraggo le dimensioni del dataset
+%Passo 1: estraggo le dimensioni del dataset e converto i valori della 
+%variabile di uscita in valori booleani utilizzando variabili ausiliarie
     pX1=size(X1,1);
     pY1=size(Y1,1);
     n_nodi=size(W,1);
@@ -34,23 +35,18 @@ function [soluzione,K1] = distributed_classificationonline(K0,X1,Y1,sol_prec,ret
     if pX1 ~= pY1
         error('Il numero dei nuovi campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)',pX1,pY1);
     end
-    
-%Passo 2: converto i valori della variabile di uscita in valori booleani 
-%utilizzando variabili ausiiarie
-    aus=dummyvar(Y1);
         
-%Passo 3: distribuisco i dati nel sistema
+%Passo 2: distribuisco i dati nel sistema
     spmd (n_nodi)
         X1_dist=codistributed(X1, codistributor1d(1));
         Y1_dist=codistributed(aus, codistributor1d(1));
         X1_local=getLocalPart(X1_dist);
         Y1_local=getLocalPart(Y1_dist);
         
-%Passo 4: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema       
+%Passo 3: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema       
         scal = X_local*rete.coeff';
         aff = bsxfun(@plus,scal,rete.soglie');
-        exit = (exp(-aff)+1).^-1;
-        A1 = exit;
+        A1 = (exp(-aff)+1).^-1;
         
         K1=(K0+A1'*A1);
 
@@ -58,7 +54,7 @@ function [soluzione,K1] = distributed_classificationonline(K0,X1,Y1,sol_prec,ret
         neigh_idx = find(neigh > 0);
         neigh_idx(neigh_idx == labindex) = [];
 
-%Passo 5: aggiorno la soluzione utilizzando i nuovi dati        
+%Passo 4: aggiorno la soluzione utilizzando i nuovi dati        
         if size(X1_local,1)>0
             iniziale=sol_prec+K1\A1'*(Y1_local-A1*sol_prec);
         else
@@ -66,7 +62,7 @@ function [soluzione,K1] = distributed_classificationonline(K0,X1,Y1,sol_prec,ret
         end
         labBarrier;
         
-%Passo 6: applico l'algoritmo del consensus per aggiornare i parametri di 
+%Passo 5: applico l'algoritmo del consensus per aggiornare i parametri di 
 %ogni nodo         
         corrente=iniziale;
 

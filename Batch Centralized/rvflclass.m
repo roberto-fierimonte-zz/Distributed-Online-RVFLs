@@ -28,8 +28,7 @@ function soluzione = rvflclass(X,Y,rete)
 %Passo 3: determino la matrice delle uscite dell'espansione funzionale
     scal=X*rete.coeff';
     aff = bsxfun(@plus,scal,rete.soglie');
-    exit = (exp(-aff)+1).^-1;
-    A = exit;
+    A = (exp(-aff)+1).^-1;
     
 %Passo 4: calcolo la matrice dei parametri risolvendo il sistema lineare e
 %discriminando il procedimento in base alla dimensione del dataset
