@@ -1,14 +1,12 @@
-function [soluzione,K1] = distributed_regressiononlineseriale(K0,X1,Y1,sol_prec,rete,W,n_iter,cvpart)
-%DISTRIBUTED_REGRESSIONONLINE definisce un algoritmo per problemi di 
+function soluzione = distributed_regression_lms_seriale(X1,Y1,sol_prec,rete,W,mu,n_iter,cvpart)
+%DISTRIBUTED_REGRESSION_LMS definisce un algoritmo per problemi di 
 %regressione e classificazione binaria in sistemi distribuiti in cui per 
 %ogni nodo del sistema la macchina per l'apprendimento è definita da una 
-%RVFL, i parametri sono determinati attraverso un algortimo di consensus
-%e in cui siano forniti nuovi dati e si desideri aggiornare la stima dei
-%parametri
+%RVFL, in cui siano forniti nuovi dati e si desideri aggiornare la stima dei
+%parametri attraverso una tecnica di Least-Mean Squares (LMS) e successivamente
+%di un algoritmo di Consensus
 %
-%Input: K0: pseudoinversa (K x K) distribuita relativa all'iterazione 
-%           precedente
-%       X1: matrice p1 x n dei nuovi campioni di ingresso
+%Input: X1: matrice p1 x n dei nuovi campioni di ingresso
 %       Y1: vettore dei nuovi campioni di uscita (p1 campioni)
 %       sol_prec: vettore dei parametri della rete stimati attraverso i
 %           campioni già noti (K parametri)
@@ -17,13 +15,13 @@ function [soluzione,K1] = distributed_regressiononlineseriale(K0,X1,Y1,sol_prec,
 %           affine e parametro di regolarizzazione)
 %       W: matrice dei pesi associati al sistema distribuito (deve soddisfare
 %           opportune proprietà)
+%       mu: scalare che definisce il passo lungo la direzione
+%           dell'antigradiente
 %       n_iter: intero che definisce il numero di iterazioni del consensus
 %       cvpart: oggetto di tipo cvpartition usato per distribuire i dati nel
 %           sistema
 %
 %Output: soluzione: vettore dei parametri del modello (K parametri)
-%        K1: pseudoinversa (K x K) distribuita elativa all'iterazione 
-%           corrente   
 
 %Passo 1: estraggo le dimensioni del dataset
     pX1=size(X1,1);
@@ -42,17 +40,14 @@ function [soluzione,K1] = distributed_regressiononlineseriale(K0,X1,Y1,sol_prec,
         aff=bsxfun(@plus,scal,rete.soglie');
         A1=(exp(-aff)+1).^-1;
         
-        K1=(K0+A1'*A1);
-        
         if size(X1,1)>0
-            soluzione=sol_prec+K1\A1'*(Y1-A1*sol_prec);
+            soluzione=sol_prec-mu(A1'*A1*sol_prec-A1'*Y1_local+rete.lambda*sol_prec);
         else
             soluzione=sol_prec;
         end
     else
         
         beta = zeros(rete.dimensione,n_nodi);
-        K1=zeros(rete.dimensione,rete.dimensione,n_nodi);
         
         for kk=1:n_nodi
             X1local=X1(cvpart.test(kk),:);
@@ -61,13 +56,11 @@ function [soluzione,K1] = distributed_regressiononlineseriale(K0,X1,Y1,sol_prec,
             aff1 = bsxfun(@plus,scal,rete.soglie');
             exit1 = (exp(-aff1)+1).^-1;
             A1 = exit1;
-
-            K1(:,:,kk)=(K0(:,:,kk)+A1'*A1);
         
 %Passo 5: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
 %il sistema linare        
             if size(X1local,1)>0
-                beta(:,kk)=sol_prec+K1(:,:,kk)\A1'*(Y1local-A1*sol_prec);
+                beta(:,kk)=sol_prec-1/norm*(A1'*A1*sol_prec-A1'*Y1local+rete.lambda*sol_prec);
             else
                 beta(:,kk)=sol_prec;
             end

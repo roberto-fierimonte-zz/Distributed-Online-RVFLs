@@ -37,7 +37,7 @@ function soluzione = distributed_classificationseriale(X,Y,rete,W,n_iter,cvpart)
         aff=bsxfun(@plus,scal,rete.soglie');
         A=(exp(-aff)+1).^-1;
         
-        if pX >= K
+        if pX >= rete.dimensione
             soluzione = (A'*A+rete.lambda*eye(rete.dimensione))\A'*aus;
         else
             soluzione = A'/(rete.lambda*eye(pX)+A*A')*aus;
@@ -56,7 +56,7 @@ function soluzione = distributed_classificationseriale(X,Y,rete,W,n_iter,cvpart)
         
 %Passo 3: calcolo il vettore dei parametri relativo a ogni nodo risolvendo 
 %il sistema lineare
-            if pX_loc >= K
+            if pX_loc >= rete.dimensione
                 beta(:,:,kk)= (A'*A+rete.lambda*eye(rete.dimensione))\A'*Ylocal;
             else
                 beta(:,:,kk)= A'/(rete.lambda*eye(pX_loc)+A*A')*Ylocal;
@@ -73,7 +73,7 @@ function soluzione = distributed_classificationseriale(X,Y,rete,W,n_iter,cvpart)
             for ii = 1:n_iter
                 nuovo=gamma;
                 for kk=1:n_nodi
-                    temp=zeros(K,m);
+                    temp=zeros(rete.dimensione,m);
                     for qq=1:n_nodi
                         temp=temp+nuovo(:,:,qq)*W(kk,qq);
                     end

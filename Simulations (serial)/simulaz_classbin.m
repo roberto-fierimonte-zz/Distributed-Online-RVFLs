@@ -28,7 +28,7 @@ else
             n_nodi=5;
             
             k=5;
-            n=15;
+            n=5;
             on=20;
             
             simulaz_classbin_online(X,Y,k,n,K,lambda,n_iter,n_nodi,on);

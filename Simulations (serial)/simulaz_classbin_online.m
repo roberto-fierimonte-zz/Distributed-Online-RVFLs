@@ -17,6 +17,8 @@ function [] = simulaz_classbin_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi,ba
             batchsol=zeros(K,1);
             distrsol=zeros(K,1);
             distrsol2=zeros(K,1);
+            lms_sol=zeros(K,1);
+            lms_sol2=zeros(K,1);
             K0=net.lambda*eye(K);
 
             for cc=1:n_nodi
@@ -41,10 +43,16 @@ function [] = simulaz_classbin_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi,ba
                     [distrsol,K0dist]=distributed_regressiononlineseriale(K0dist,Xtemp,Ytemp,distrsol,net,W,n_iter,distributor);
 
                     [distrsol2,K0dist2]=distributed_regressiononlineseriale(K0dist2,Xtemp,Ytemp,distrsol2,net,W,0,distributor);
+                    
+                    lms_sol=distributed_regression_lms_seriale(Xtemp,Ytemp,lms_sol,net,W,10^-3,n_iter,distributor);
+                    
+                    lms_sol2=distributed_regression_lms_seriale(Xtemp,Ytemp,lms_sol2,net,W,10^-3,0,distributor);
 
                     batcherr(kk,ii)=test_classbin(X_test,Y_test,net,batchsol);
                     distrerr(kk,ii)=test_classbin(X_test,Y_test,net,distrsol);
                     errtest(kk,ii)=test_classbin(X_test,Y_test,net,distrsol2);
+                    lmserr(kk,ii)=test_classbin(X_test,Y_test,net,lms_sol);
+                    lmserrtest(kk,ii)=test_classbin(X_test,Y_test,net,lms_sol2);
 
                     start=(start+batch);
                 else
@@ -55,15 +63,18 @@ function [] = simulaz_classbin_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi,ba
         errore(:,1,jj)=mean(batcherr,2);
         errore(:,2,jj)=mean(distrerr,2);
         errore(:,3,jj)=mean(errtest,2);
+        errore(:,4,jj)=mean(lmserr,2);
+        errore(:,5,jj)=mean(lmserrtest,2);
         fprintf('run %i di %i completo\n',jj,n_run);
     end
-    baseline=1/2*ones(1,3,n_run);
+    baseline=1/2*ones(1,5,n_run);
+    errore=[baseline; errore];
     devst=std(errore,1,3);
     fprintf('Riepilogo simulazione:\n---------------------------------------------------------------------------------------------------------------\n');
     fprintf('                                    Media errore:   Dev.St.:\n\n');
-    fprintf('Dati non distribuiti:               %.4f            %.4f\n\n',mean(errore(n_online,1),3),devst(n_online,1));
-    fprintf('Dati distribuiti con consensus:     %.4f            %.4f\n\n',mean(errore(n_online,2),3),devst(n_online,2));
-    fprintf('Dati distribuiti senza consensus:   %.4f            %.4f\n\n',mean(errore(n_online,3),3),devst(n_online,3));
+    fprintf('Centralized RVFL:                   %.4f            %.4f\n\n',mean(errore(n_online+1,1),3),devst(n_online,1));
+    fprintf('RLS-Consensus RVFL:                 %.4f            %.4f\n\n',mean(errore(n_online+1,2),3),devst(n_online,2));
+    fprintf('RLS-Local RVFL:                     %.4f            %.4f\n\n',mean(errore(n_online+1,3),3),devst(n_online,3));
     
     prepare_plot_online;
 end

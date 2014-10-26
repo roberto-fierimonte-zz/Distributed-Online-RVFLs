@@ -12,7 +12,7 @@ function [] = simulaz_regressione_param(X,Y,lambda_vec,Kmax,n_iter,n_fold)
             
             for kk=1:n_iter
                 
-                c = cvpartition(Y,'kfold',n_fold);
+                c = cvpartition(size(X,1),'kfold',n_fold);
                 [coeff,soglie]=genera_rete(K,size(X,2));
                 net=struct('soglie',soglie,'coeff',coeff,'dimensione',K,'lambda',lambda);
                 errtemp=0;

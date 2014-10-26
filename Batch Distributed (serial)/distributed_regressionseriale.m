@@ -35,7 +35,7 @@ function soluzione = distributed_regressionseriale(X,Y,rete,W,n_iter,cvpart)
         aff=bsxfun(@plus,scal,rete.soglie');
         A=(exp(-aff)+1).^-1;
         
-        if pX >= K
+        if pX >= rete.dimensione
             soluzione = (A'*A+rete.lambda*eye(rete.dimensione))\A'*Y;
         else
             soluzione = A'/(rete.lambda*eye(pX)+A*A')*Y;
@@ -54,7 +54,7 @@ function soluzione = distributed_regressionseriale(X,Y,rete,W,n_iter,cvpart)
 
 %Passo 3: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
 %il sistema linare        
-            if pX_loc >= K
+            if pX_loc >= rete.dimensione
                 beta(:,kk)= (A'*A+rete.lambda*eye(rete.dimensione))\A'*Ylocal;
             else
                 beta(:,kk)= A'/(rete.lambda*eye(pX_loc)+A*A')*Ylocal;
