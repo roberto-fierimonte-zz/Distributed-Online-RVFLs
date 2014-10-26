@@ -1,7 +1,7 @@
 rng(1)
 clc
 clear
-load('/Users/robertofierimonte/Documents/MATLAB/Classificazione multiclasse/pageblocks.mat')
+load('Datasets/MC/pageblocks.mat')
 [X,Y]=preprocess(pageblocks_X,pageblocks_Y);
 clear pageblocks_X;
 clear pageblocks_Y;

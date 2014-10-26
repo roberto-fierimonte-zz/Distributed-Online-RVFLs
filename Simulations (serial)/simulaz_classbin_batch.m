@@ -42,9 +42,6 @@ function [] = simulaz_classbin_batch(X,Y,n_fold,n_run,K,lambda,n_iter,vett_nodi)
                     distrsol2=distributed_regressionseriale(X_train,Y_train,net,W,0,distributor);
                     time_test=toc;
                     errtest=test_classbin(X_test,Y_test,net,distrsol2);
-                    
-                    %ATCsol=rvfl_ATC_seriale(X_train,Y_train,net,W,zeros(K,n_nodi),10^-5,100000,distributor);
-                    %ATCerr=test_classbin(X_test,Y_test,net,ATCsol);
 
                 errore(ind,:,(jj-1)*n_fold+ii)=[0,batcherr,distrerr,errtest];
                 train_time(ind,:,(jj-1)*n_fold+ii)=[0,time_batch,time_distr/n_nodi,time_test/n_nodi];

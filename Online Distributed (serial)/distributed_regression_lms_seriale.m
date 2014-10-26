@@ -41,7 +41,7 @@ function soluzione = distributed_regression_lms_seriale(X1,Y1,sol_prec,rete,W,mu
         A1=(exp(-aff)+1).^-1;
         
         if size(X1,1)>0
-            soluzione=sol_prec-mu*(A1'*A1*sol_prec-A1'*Y1_local+rete.lambda*sol_prec);
+            soluzione=sol_prec-mu*(A1'*A1*sol_prec-A1'*Y1+rete.lambda*sol_prec);
         else
             soluzione=sol_prec;
         end

@@ -36,7 +36,11 @@ function [] = simulaz_classbin_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi,ba
                 end
 
                 if size(Xtemp,1)>=n_nodi
-                    distributor = cvpartition(Ytemp,'K',n_nodi);
+                    if n_nodi == 1
+                        distributor = 0;
+                    else
+                        distributor = cvpartition(Ytemp,'K',n_nodi);
+                    end
 
                     [batchsol,K0]=rvflreg_sequenz(K0,Xtemp,Ytemp,batchsol,net);
 
@@ -44,9 +48,9 @@ function [] = simulaz_classbin_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi,ba
 
                     [distrsol2,K0dist2]=distributed_regressiononlineseriale(K0dist2,Xtemp,Ytemp,distrsol2,net,W,0,distributor);
                     
-                    lms_sol=distributed_regression_lms_seriale(Xtemp,Ytemp,lms_sol,net,W,10^-3,n_iter,distributor);
+                    lms_sol=distributed_regression_lms_seriale(Xtemp,Ytemp,lms_sol,net,W,10^-5,n_iter,distributor);
                     
-                    lms_sol2=distributed_regression_lms_seriale(Xtemp,Ytemp,lms_sol2,net,W,10^-3,0,distributor);
+                    lms_sol2=distributed_regression_lms_seriale(Xtemp,Ytemp,lms_sol2,net,W,10^-5,0,distributor);
 
                     batcherr(kk,ii)=test_classbin(X_test,Y_test,net,batchsol);
                     distrerr(kk,ii)=test_classbin(X_test,Y_test,net,distrsol);

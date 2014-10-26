@@ -16,7 +16,7 @@ else
             vett_nodi=[1 5 10 15 20 25 30 35 40 45 50];
 
             k=5;
-            n=15;
+            n=5;
             
             simulaz_classbin_batch(X,Y,k,n,K,lambda,n_iter,vett_nodi);
         case 2
