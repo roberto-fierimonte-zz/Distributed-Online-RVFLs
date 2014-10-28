@@ -1,4 +1,4 @@
-function soluzione = lms_sgd_seriale(X1,Y1,sol_prec,rete,W,count,n_iter,cvpart)
+function soluzione = lms_sgd_seriale(X1,Y1,sol_prec,mu_zero,rete,W,count,n_iter,cvpart)
 %DISTRIBUTED_REGRESSION_LMS definisce un algoritmo per problemi di 
 %regressione e classificazione binaria in sistemi distribuiti in cui per 
 %ogni nodo del sistema la macchina per l'apprendimento è definita da una 
@@ -41,7 +41,7 @@ function soluzione = lms_sgd_seriale(X1,Y1,sol_prec,rete,W,count,n_iter,cvpart)
         A1=(exp(-aff)+1).^-1;
         
         if size(X1,1)>0
-            soluzione=sol_prec-0.02*(count^(-1/2))*((A1'*A1*sol_prec-A1'*Y1)/size(X1,1)+rete.lambda*sol_prec);
+            soluzione=sol_prec-mu_zero/count*(A1'*A1*sol_prec-A1'*Y1+rete.lambda*sol_prec);
         else
             soluzione=sol_prec;
         end
@@ -59,7 +59,7 @@ function soluzione = lms_sgd_seriale(X1,Y1,sol_prec,rete,W,count,n_iter,cvpart)
 %Passo 5: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
 %il sistema linare        
             if size(X1local,1)>0
-                beta(:,kk)=sol_prec-0.02*(count^(-1/2))*((A1'*A1*sol_prec-A1'*Y1local)/size(X1local,1)+rete.lambda*sol_prec);
+                beta(:,kk)=sol_prec-mu_zero/count*(A1'*A1*sol_prec-A1'*Y1local+rete.lambda*sol_prec);
             else
                 beta(:,kk)=sol_prec;
             end

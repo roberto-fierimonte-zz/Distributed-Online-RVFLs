@@ -25,7 +25,7 @@ else
             K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
             lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
             n_iter=250;
-            n_nodi=1;
+            n_nodi=5;
             
             k=5;
             n=5;
