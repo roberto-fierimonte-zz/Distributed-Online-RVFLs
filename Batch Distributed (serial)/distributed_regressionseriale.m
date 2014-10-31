@@ -1,4 +1,5 @@
-function soluzione = distributed_regressionseriale(X,Y,rete,W,n_iter,cvpart)
+function [soluzione,n_iter] = distributed_regressionseriale(X,Y,rete,...
+    W,max_iter,cvpart)
 %DISTRIBUTED_REGRESSION definisce un algoritmo per problemi di regressione
 %e classificazione binaria in sistemi distribuiti in cui per ogni nodo del 
 %sistema la macchina per l'apprendimento è definita da una RVFL e i 
@@ -11,12 +12,15 @@ function soluzione = distributed_regressionseriale(X,Y,rete,W,n_iter,cvpart)
 %           affine e parametro di regolarizzazione)
 %       W: matrice dei pesi associati al sistema distribuito (deve soddisfare
 %          opportune proprietà)
-%       n_iter: intero che definisce il numero di iterazioni del consensus
+%       max_iter: intero che definisce il numero massimo di iterazioni del 
+%           consensus
 %       cvpart: oggetto di tipo cvpartition usato per distribuire i dati nel
 %           sistema
 %
 %Output: soluzione: vettore dei parametri del modello (K parametri)
-
+%        n_iter: numero di iterazioni del consensus al verificarsi del
+%           criterio di arresto
+%        training_time: tempo di addestramento del modello in secondi
 
 %Passo 1: estraggo le dimensioni del dataset
     pX=size(X,1);
@@ -26,7 +30,8 @@ function soluzione = distributed_regressionseriale(X,Y,rete,W,n_iter,cvpart)
 %Se i campioni di ingresso e uscita sono di numero diverso restituisco un
 %errore
     if pX ~= pY
-        error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)',pX,pY);
+        error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)'...
+            ,pX,pY);
     end
 
 %Passo 2: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema  
@@ -40,6 +45,7 @@ function soluzione = distributed_regressionseriale(X,Y,rete,W,n_iter,cvpart)
         else
             soluzione = A'/(rete.lambda*eye(pX)+A*A')*Y;
         end
+        n_iter=0;
     else
         
         beta = zeros(rete.dimensione,n_nodi);
@@ -63,20 +69,22 @@ function soluzione = distributed_regressionseriale(X,Y,rete,W,n_iter,cvpart)
 
 %Passo 4: applico l'algoritmo del consensus per aggiornare i parametri di 
 %ogni nodo
-        if n_iter==0
+        if max_iter==0
             soluzione=beta(:,1);
         else
+            beta_avg_real = mean(beta, 2);
             gamma=beta;
 
-            for ii = 1:n_iter
+            for ii = 1:max_iter
                 nuovo=gamma;
                 gamma=nuovo*W;
+                if all(all((abs(repmat(beta_avg_real, 1, size(gamma, 2)) - ...
+                        gamma) <= 10^-6)))
+                    soluzione=gamma(:,1);
+                    n_iter=ii;
+                    break
+                end
             end
-
-            beta_avg_real = mean(beta, 2);
-            assert(all(all((abs(repmat(beta_avg_real, 1, size(gamma, 2)) - gamma) <= 10^-6))), 'Errore: consenso non raggiunto :(');
-
-            soluzione=gamma(:,1);
         end
     end
 end

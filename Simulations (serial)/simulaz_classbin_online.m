@@ -50,9 +50,9 @@ function [] = simulaz_classbin_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi,ba
 
                     [distrsol2,K0dist2]=distributed_regressiononlineseriale(K0dist2,Xtemp,Ytemp,distrsol2,net,W,0,distributor);
                     
-                    [mom_sol,aus]=lms_momentum_seriale(Xtemp,Ytemp,mom_sol,aus,0.011,net,W,kk,n_iter,distributor);  
+                    [mom_sol,aus]=lms_momentum_seriale(Xtemp,Ytemp,mom_sol,aus,10^-3,1,net,W,kk,n_iter,distributor);  
                     
-                    [lms_sol2,aus2]=lms_momentum_seriale(Xtemp,Ytemp,lms_sol2,aus2,0.011,net,W,kk,0,distributor);
+                    [lms_sol2,aus2]=lms_momentum_seriale(Xtemp,Ytemp,lms_sol2,aus2,10^-3,1,net,W,kk,0,distributor);
 
                     batcherr(kk,ii)=test_classbin(X_test,Y_test,net,batchsol);
                     distrerr(kk,ii)=test_classbin(X_test,Y_test,net,distrsol);

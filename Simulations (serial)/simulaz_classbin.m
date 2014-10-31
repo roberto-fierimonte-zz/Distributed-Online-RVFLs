@@ -11,12 +11,12 @@ else
             %batch
             K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
             lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
-            n_iter=250;
+            n_iter=500;
 
             vett_nodi=[1 5 10 15 20 25 30 35 40 45 50];
 
             k=5;
-            n=5;
+            n=15;
             
             simulaz_classbin_batch(X,Y,k,n,K,lambda,n_iter,vett_nodi);
         case 2
@@ -24,7 +24,7 @@ else
             %online
             K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
             lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
-            n_iter=250;
+            n_iter=500;
             n_nodi=5;
             
             k=5;

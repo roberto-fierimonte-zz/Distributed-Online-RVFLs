@@ -1,5 +1,4 @@
-function [soluzione,n_iter,training_time] = distributed_classificationseriale...
-    (X,Y,rete,W,max_iter,cvpart)
+function [soluzione,n_iter,train_time] = distributed_classificationseriale(X,Y,rete,W,max_iter,cvpart)
 %DISTRIBUTED_CLASSIFICATION definisce un algoritmo per problemi di
 %classificazione in sistemi distribuiti in cui per ogni nodo del sistema la
 %macchina per l'apprendimento è definita da una RVFL e i parametri sono 
@@ -18,9 +17,6 @@ function [soluzione,n_iter,training_time] = distributed_classificationseriale...
 %           sistema
 %
 %Output: soluzione: matrice K x m dei parametri del modello
-%        n_iter: numero di iterazioni del consensus al verificarsi del
-%           criterio di arresto
-%        training_time: tempo di addestramento del modello in secondi
 
 %Passo 1: estraggo le dimensioni del dataset e converto i valori della 
 %variabile di uscita in valori booleani utilizzando variabili ausiliarie
@@ -34,8 +30,7 @@ function [soluzione,n_iter,training_time] = distributed_classificationseriale...
 %Se i campioni di ingresso e uscita sono di numero diverso restituisco un
 %errore
     if pX ~= pY
-        error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)'...
-            ,pX,pY);
+        error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)',pX,pY);
     end
    
 %Passo 2: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema
@@ -49,8 +44,6 @@ function [soluzione,n_iter,training_time] = distributed_classificationseriale...
         else
             soluzione = A'/(rete.lambda*eye(pX)+A*A')*aus;
         end
-        training_time=toc;
-        n_iter=0;
     else
         
         beta = zeros(rete.dimensione,m,n_nodi);
@@ -76,8 +69,6 @@ function [soluzione,n_iter,training_time] = distributed_classificationseriale...
 %ogni nodo
         if max_iter==0
             soluzione=beta(:,:,1);
-            training_time=toc;
-            n_iter=0;
         else
             beta_avg_real = mean(beta, 3);
             gamma=beta;
@@ -91,14 +82,11 @@ function [soluzione,n_iter,training_time] = distributed_classificationseriale...
                     end
                     gamma(:,:,kk)=temp;
                 end
-                if all(all(all((abs(repmat(beta_avg_real, 1, 1, ...
-                        size(gamma, 3)) - gamma) <= 10^-6))))
-                    soluzione=gamma(:,:,1);
-                    n_iter=ii;
-                    break
-                end
             end
-            training_time=toc;
+
+            assert(all(all(all((abs(repmat(beta_avg_real, 1, 1, size(gamma, 3)) - gamma) <= 10^-6)))), 'Errore: consenso non raggiunto :(');
+
+            soluzione=gamma(:,:,1);
         end
     end
 end

@@ -1,9 +1,9 @@
-function soluzione = distributed_regression_lms(X1,Y1,sol_prec,rete,W,mu,n_iter)
-%DISTRIBUTED_REGRESSION_LMS definisce un algoritmo per problemi di 
+function [soluzione,aus] = distributed_regression_sgd(X1,Y1,sol_prec,aus_prec,rete,W,mu_zero,max_iter)
+%DISTRIBUTED_REGRESSION_SGD definisce un algoritmo per problemi di 
 %regressione e classificazione binaria in sistemi distribuiti in cui per 
 %ogni nodo del sistema la macchina per l'apprendimento è definita da una 
 %RVFL, in cui siano forniti nuovi dati e si desideri aggiornare la stima dei
-%parametri attraverso una tecnica di Least-Mean Squares (LMS) e successivamente
+%parametri attraverso una tecnica di Gradiente Stocastico (SGD) e successivamente
 %di un algoritmo di Consensus
 %
 %Input: X1: matrice p1 x n dei nuovi campioni di ingresso
@@ -15,13 +15,18 @@ function soluzione = distributed_regression_lms(X1,Y1,sol_prec,rete,W,mu,n_iter)
 %           affine e parametro di regolarizzazione)
 %       W: matrice dei pesi associati al sistema distribuito (deve soddisfare
 %           opportune proprietà)
-%       mu: scalare che definisce il passo lungo la direzione
+%       C: costante positiva usata nel calcolo del passo
+%       mu_zero: scalare che definisce il passo iniziale lungo la direzione
 %           dell'antigradiente
-%       n_iter: intero che definisce il numero di iterazioni del consensus
+%       max_iter: intero che definisce il numero massimo di iterazioni del 
+%           consensus
 %
 %Output: soluzione: vettore dei parametri del modello (K parametri)
+%        aus: vettore ausiliario di dimensione K usato nella modifica di 
+%           Nesterov
 
 %Passo 1: estraggo le dimensioni del dataset e il numero di nodi
+    tic;
     pX1=size(X1,1);
     pY1=size(Y1,1);
     n_nodi=size(W,1);
@@ -29,7 +34,8 @@ function soluzione = distributed_regression_lms(X1,Y1,sol_prec,rete,W,mu,n_iter)
 %Se i campioni di ingresso e uscita sono di numero diverso restituisco un
 %errore
     if pX1 ~= pY1
-        error('Il numero dei nuovi campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)',pX1,pY1);
+        error('Il numero dei nuovi campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)'...
+            ,pX1,pY1);
     end
     
 %Passo 2: distribuisco i dati nel sistema
@@ -50,7 +56,8 @@ function soluzione = distributed_regression_lms(X1,Y1,sol_prec,rete,W,mu,n_iter)
 
 %Passo 4: aggiorno la soluzione utilizzando i nuovi dati
         if size(X1_local,1)>0
-            iniziale=sol_prec-mu*(A1'*A1*sol_prec-A1'*Y1_local+rete.lambda*sol_prec);
+            iniziale=aus_prec-C*mu_zero^-count*((A1'*A1*aus_prec-A1'*Y1_local)/size(X1,1)+...
+                rete.lambda*aus_prec);
         else
             iniziale=sol_prec;
         end
@@ -60,7 +67,7 @@ function soluzione = distributed_regression_lms(X1,Y1,sol_prec,rete,W,mu,n_iter)
 %ogni nodo        
         corrente=iniziale;
         
-        for ii=1:n_iter
+        for ii=1:max_iter
             
             new = neigh(labindex)*corrente;
 
@@ -81,7 +88,7 @@ function soluzione = distributed_regression_lms(X1,Y1,sol_prec,rete,W,mu,n_iter)
     
 %Passo 6: controllo se i nodi hanno raggiunto il consenso e restituisco il
 %vettore dei parametri
-    if n_iter==0
+    if max_iter==0
         soluzione=iniziale{1};
     else
         
@@ -97,5 +104,6 @@ function soluzione = distributed_regression_lms(X1,Y1,sol_prec,rete,W,mu,n_iter)
         assert(all(all((abs(repmat(beta_avg_real, 1, size(gamma, 2)) - gamma) <= 10^-6))), 'Errore: consenso non raggiunto :(');
         
         soluzione=gamma(:,1);
+        aus=count/(count+3)*(soluzione-sol_prec);
     end
 end

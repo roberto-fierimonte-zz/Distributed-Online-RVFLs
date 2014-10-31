@@ -1,4 +1,4 @@
-function soluzione = distributed_classification(X,Y,rete,W,n_iter)
+function soluzione = distributed_classification(X,Y,rete,W,max_iter)
 %DISTRIBUTED_CLASSIFICATION definisce un algoritmo per problemi di
 %classificazione in sistemi distribuiti in cui per ogni nodo del sistema la
 %macchina per l'apprendimento è definita da una RVFL e i parametri sono 
@@ -11,8 +11,8 @@ function soluzione = distributed_classification(X,Y,rete,W,n_iter)
 %           affine e parametro di regolarizzazione)
 %       W: matrice dei pesi associati al sistema distribuito (deve soddisfare
 %          opportune proprietà)
-%       n_iter: intero che definisce il numero di iterazioni del consensus
-%
+%       max_iter: intero che definisce il numero massimo di iterazioni del 
+%           consensus
 %
 %Output: soluzione: matrice K x m dei parametri del modello
 
@@ -59,7 +59,7 @@ function soluzione = distributed_classification(X,Y,rete,W,n_iter)
         neigh_idx = find(neigh > 0);
         neigh_idx(neigh_idx == labindex) = [];
 
-        for ii = 1:n_iter
+        for ii = 1:max_iter
 
             new = neigh(labindex)*corrente;
 
@@ -81,7 +81,7 @@ function soluzione = distributed_classification(X,Y,rete,W,n_iter)
         
 %Passo 6: controllo se i nodi hanno raggiunto il consenso e restituisco la
 %matrice dei parametri  
-    if n_iter==0
+    if max_iter==0
         soluzione=iniziale{1};
     else
         

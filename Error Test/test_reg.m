@@ -1,4 +1,4 @@
-function [NMSE,NSR] = test_reg(X_test,Y_test,rete,beta)
+function [NRMSE,NSR] = test_reg(X_test,Y_test,rete,beta)
 %TEST_REG misura l'errore di regressione del modello definito da una RVFL
 %sul test set
 %
@@ -14,9 +14,10 @@ function [NMSE,NSR] = test_reg(X_test,Y_test,rete,beta)
 %           varianza del test set
 %        NSR: scalare che misura il rapporto rumore-segnale sul test set
 
+pX=size(X_test,1);
 esp=(exp(-bsxfun(@plus,X_test*rete.coeff',rete.soglie'))+1).^-1;
 uscita=esp*beta;
-NMSE=sum(((uscita-Y_test).^2))/(size(X_test,1)*var(Y_test));
+NRMSE=sqrt(sum(((uscita-Y_test).^2))/(pX*var(Y_test)));
 NSR=10*log10(sum((Y_test-uscita).^2)/sum(Y_test.^2));
 end
 

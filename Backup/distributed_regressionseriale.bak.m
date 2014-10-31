@@ -1,5 +1,4 @@
-function [soluzione,n_iter,training_time] = distributed_regressionRseriale...
-    (X,Y,rete,W,max_iter,cvpart)
+function soluzione = distributed_regressionseriale(X,Y,rete,W,max_iter,cvpart)
 %DISTRIBUTED_REGRESSION definisce un algoritmo per problemi di regressione
 %e classificazione binaria in sistemi distribuiti in cui per ogni nodo del 
 %sistema la macchina per l'apprendimento è definita da una RVFL e i 
@@ -18,12 +17,9 @@ function [soluzione,n_iter,training_time] = distributed_regressionRseriale...
 %           sistema
 %
 %Output: soluzione: vettore dei parametri del modello (K parametri)
-%        n_iter: numero di iterazioni del consensus al verificarsi del
-%           criterio di arresto
-%        training_time: tempo di addestramento del modello in secondi
+
 
 %Passo 1: estraggo le dimensioni del dataset
-    tic;
     pX=size(X,1);
     pY=size(Y,1);
     n_nodi=size(W,1);
@@ -31,73 +27,57 @@ function [soluzione,n_iter,training_time] = distributed_regressionRseriale...
 %Se i campioni di ingresso e uscita sono di numero diverso restituisco un
 %errore
     if pX ~= pY
-        error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)'...
-            ,pX,pY);
+        error('Il numero di campioni di ingresso (%i) è diverso da quello dei campioni in uscita (%i)',pX,pY);
     end
 
-%Passo 2: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema
+%Passo 2: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema  
     if n_nodi==1
         scal=X*rete.coeff';
         aff=bsxfun(@plus,scal,rete.soglie');
         A=(exp(-aff)+1).^-1;
         
-        if pX >= K
+        if pX >= rete.dimensione
             soluzione = (A'*A+rete.lambda*eye(rete.dimensione))\A'*Y;
         else
             soluzione = A'/(rete.lambda*eye(pX)+A*A')*Y;
         end
-        training_time=toc;
-        n_iter=0;
     else
         
-        P = zeros(rete.dimensione,rete.dimensione,n_nodi);
-        q = zeros(rete.dimensione,n_nodi);
-        beta=zeros(rete.dimensione,n_nodi);
+        beta = zeros(rete.dimensione,n_nodi);
         
         for kk=1:n_nodi
             Xlocal=X(cvpart.test(kk),:);
             Ylocal=Y(cvpart.test(kk),:);
+            pX_loc=size(Xlocal,1);
             scal = Xlocal*rete.coeff';
             aff = bsxfun(@plus,scal,rete.soglie');
             A = (exp(-aff)+1).^-1;
 
-            P(:,:,kk) = (A'*A+lambda*eye(rete.dimensione));
-            q(:,kk) = A'*Ylocal;
-            
-            beta(:,kk) = P(:,:,kk)\q(:,:,kk);
+%Passo 3: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
+%il sistema linare        
+            if pX_loc >= rete.dimensione
+                beta(:,kk)= (A'*A+rete.lambda*eye(rete.dimensione))\A'*Ylocal;
+            else
+                beta(:,kk)= A'/(rete.lambda*eye(pX_loc)+A*A')*Ylocal;
+            end
         end
-        
-%Passo 3: applico l'algoritmo del consensus per aggiornare i parametri di 
+
+%Passo 4: applico l'algoritmo del consensus per aggiornare i parametri di 
 %ogni nodo
         if max_iter==0
-            soluzione=P(:,:,1)\q(:,1);
-            training_time=toc;
-            n_iter=0;
+            soluzione=beta(:,1);
         else
             beta_avg_real = mean(beta, 2);
-            gamma=zeros(rete.dimensione,n_nodi);
+            gamma=beta;
 
-            for ii=1:max_iter
-                oldP=P;
-                oldq=q;
-                for kk=1:n_nodi
-                    tempP=zeros(K,K);
-                    tempq=zeros(K,1);
-                    for qq=1:n_nodi
-                        tempP=tempP+oldP(:,:,qq)*W(kk,qq);
-                        tempq=tempq+oldq(:,qq)*W(kk,qq);
-                    end
-                    P(:,:,kk)=tempP;
-                    q(:,kk)=tempq;
-                    gamma(:,kk)=P(:,:,kk)\q(:,kk);
-                end
-                if all(all((abs(repmat(beta_avg_real, 1, size(gamma, 2))...
-                        - gamma) <= 10^-6)))
-                    soluzione=gamma(:,:,1);
-                    n_iter=ii;
-                    break
-                end
+            for ii = 1:max_iter
+                nuovo=gamma;
+                gamma=nuovo*W;
             end
+
+            assert(all(all((abs(repmat(beta_avg_real, 1, size(gamma, 2)) - gamma) <= 10^-6))), 'Errore: consenso non raggiunto :(');
+
+            soluzione=gamma(:,1);
         end
     end
 end

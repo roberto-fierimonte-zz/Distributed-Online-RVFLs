@@ -1,4 +1,4 @@
-function soluzione = distributed_regressionR(X,Y,rete,W,n_iter)
+function soluzione = distributed_regressionR(X,Y,rete,W,max_iter)
 %DISTRIBUTED_REGRESSION definisce un algoritmo per problemi di regressione
 %e classificazione binaria in sistemi distribuiti in cui per ogni nodo del 
 %sistema la macchina per l'apprendimento è definita da una RVFL e i 
@@ -11,7 +11,8 @@ function soluzione = distributed_regressionR(X,Y,rete,W,n_iter)
 %           affine e parametro di regolarizzazione)
 %       W: matrice dei pesi associati al sistema distribuito (deve soddisfare
 %          opportune proprietà)
-%       n_iter: intero che definisce il numero di iterazioni del consensus
+%       max_iter: intero che definisce il numero massimo di iterazioni del 
+%           consensus
 %
 %Output: soluzione: vettore dei parametri del modello (K parametri)
 
@@ -49,7 +50,7 @@ function soluzione = distributed_regressionR(X,Y,rete,W,n_iter)
         neigh_idx = find(neigh > 0);
         neigh_idx(neigh_idx == labindex) = [];
         
-        for ii = 1:n_iter
+        for ii = 1:max_iter
             
             newP = neigh(labindex)*P;
             newq = neigh(labindex)*q;
@@ -82,7 +83,7 @@ function soluzione = distributed_regressionR(X,Y,rete,W,n_iter)
     end
     
 %Ritorno gli output  
-    if n_iter==0
+    if max_iter==0
         soluzione=iniziale{1};
     else
         

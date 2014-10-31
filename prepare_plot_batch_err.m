@@ -10,8 +10,8 @@ line_width = 1.5;               % LineWidth
 % Plot instructions
 plot(errore(:,1,1),(mean(errore(:,2,:),3)),'k--','LineWidth',line_width);
 hold on
-errorbar(errore(:,1,1),(mean(errore(:,3,:),3)),devst(:,3),'b','LineWidth',line_width);
-errorbar(errore(:,1,1),(mean(errore(:,4,:),3)),devst(:,4),'r','LineWidth',line_width);
+errorbar(errore(:,1,1),(mean(errore(:,3,:),3)),devst_err(:,3),'b','LineWidth',line_width);
+errorbar(errore(:,1,1),(mean(errore(:,4,:),3)),devst_err(:,4),'r','LineWidth',line_width);
 
 % Set various properties
 xlim([0 55]);
