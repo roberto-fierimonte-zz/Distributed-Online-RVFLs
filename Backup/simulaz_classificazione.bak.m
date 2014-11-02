@@ -35,23 +35,13 @@ else
         case 3
             %Questi parametri sono usati all'interno della simulazione per
             %il test dei parametri ottimi
-            err=ones(21,10,5);
             lambdavec=logspace(-10,10,21);
-            for mm=1:21
-                lambda=lambdavec(mm);
-                for jj=1:10
-                    K=100*jj;
-                    for kk=1:5
-                        testaparametri_class;
-                        err(mm,jj,kk)=errtemp/5;
-                    end
-                end
-            end
-            err2=mean(err,3);
-            surf(linspace(100,1000,10),lambdavec,err2);
-            [riga,colonna]=find(err2 == min(err2(:)));
-            Kmin=colonna*100; lambdamin=10^(riga-11);
-            fprintf('Parametri ottimi: K = %i, lambda = %e\n', Kmin, lambdamin);
+            Kmax=1000;
+            
+            n_fold=5;
+            n_iter=5;
+
+            simulaz_classificazione_param(X,Y,lambdavec,Kmax,n_iter,n_fold);
         otherwise
             error('Ancora non sono pronto per questo! :(');
     end

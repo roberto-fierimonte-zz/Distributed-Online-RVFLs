@@ -1,23 +1,22 @@
-function [NRMSE,NSR] = test_reg(X_test,Y_test,rete,beta)
-%TEST_REG misura l'errore di regressione del modello definito da una RVFL
-%sul test set
+function [NRMSE,NSR] = test_reg(X_test,Y_test,net,beta)
+%TEST_REG measure test error for a RVFL in regression problems
 %
-%Input: X_test: matrice p x n dei campioni di test (p campioni di
-%           dimensione n)
-%       Y_test: vettore dei campioni di uscita (p campioni)
-%       rete: struttura che contiene le informazioni relative alla RVFL
-%           (dimensione dell'espansione, pesi e soglie della combinazione
-%           affine e parametro di regolarizzazione)
-%       beta: vettore dei parametri associati al modello
+%Input: X_test: (p x n) matrix of input test patterns
+%       Y_test: (p x m) matrix of output test patterns (each column
+%           correspond to a different output function)
+%       net: struct object that gather the informations about the RVFL
+%           (number of hidden node, hidden parameters and regularization
+%           parameter)
+%       beta: (K x m) matrix of the RVFL output weights
 %
-%Output: NMSE: scalare che misura il rapporto tra l'errore quadratico e la
-%           varianza del test set
-%        NSR: scalare che misura il rapporto rumore-segnale sul test set
+%Output: NRMSE: Normalized Root Mean Squared-Error
+%        NSR: Noise-Signal Ratio
 
-pX=size(X_test,1);
-esp=(exp(-bsxfun(@plus,X_test*rete.coeff',rete.soglie'))+1).^-1;
-uscita=esp*beta;
-NRMSE=sqrt(sum(((uscita-Y_test).^2))/(pX*var(Y_test)));
-NSR=10*log10(sum((Y_test-uscita).^2)/sum(Y_test.^2));
+    pX=size(X_test,1);
+    esp=(exp(-bsxfun(@plus,X_test*net.coeff',net.bias'))+1).^-1;
+    exit=esp*beta;
+    MSE=sum((Y_test - exit).^2)/pX;
+    NRMSE=sqrt(MSE/var(Y_test));
+    NSR=10*log10(sum((Y_test-exit).^2)/sum(Y_test.^2));
 end
 

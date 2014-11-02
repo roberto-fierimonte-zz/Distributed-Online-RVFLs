@@ -1,4 +1,4 @@
-fprintf('Benvenuto,\nAvvio simulazione di apprendimento distribuito...\n\n');
+fprintf('Benvenuto,\nAvvio simulazione di apprendimento distribuito, dataset %s\n\n',dataset.name);
 scelta = input('Scegli la modalità della simulazione:\n 1 Addestramento batch usando la k-fold cross-validation\n 2 Addestramento online usando la k-fold cross-validation\n 0 Esci\n:');
 if scelta==0
     fprintf('Simulazione annullata, esco e pulisco il workspace...\n');
@@ -11,37 +11,45 @@ else
             %batch
             K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
             lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
-            n_iter=500;
+            max_iter=500;
 
             vett_nodi=[1 5 10 15 20 25 30 35 40 45 50];
 
             k=5;
             n=15;
             
-            simulaz_classbin_batch(X,Y,k,n,K,lambda,n_iter,vett_nodi);
+            if strcmp(dataset.type,'R')
+                simulaz_reg_batch(dataset,k,n,K,lambda,max_iter,vett_nodi);
+            else
+                simulaz_class_batch(dataset,k,n,K,lambda,max_iter,vett_nodi);
+            end
         case 2
             %Questi parametri sono usati all'interno della simulazione
             %online
             K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
             lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
-            n_iter=500;
+            max_iter=500;
             n_nodi=5;
             
             k=5;
             n=5;
             on=20;
             
-            simulaz_classbin_online(X,Y,k,n,K,lambda,n_iter,n_nodi,on);
+            if strcmp(dataset.type,'R')
+                simulaz_reg_online(dataset,k,n,K,lambda,max_iter,n_nodi,on);
+            else
+                simulaz_class_online(dataset,k,n,K,lambda,max_iter,n_nodi,on);
+            end
         case 3
             %Questi parametri sono usati all'interno della simulazione per
             %il test dei parametri ottimi
-            lambdavec=logspace(-10,10,21);
+            lambdavec=2.^[-10:10];
             Kmax=1000;
             
-            n_fold=5;
+            n_fold=3;
             n_iter=5;
 
-            simulaz_classbin_param(X,Y,lambdavec,Kmax,n_iter,n_fold);
+            simulaz_param(dataset,lambdavec,Kmax,n_iter,n_fold);
         otherwise
             error('Ancora non sono pronto per questo! :(');
     end

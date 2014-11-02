@@ -1,9 +1,9 @@
-function [] = simulaz_regressione_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi,batch)
+function [] = simulaz_reg_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,batch)
 
+    X=dataset.X; Y=dataset.Y; m=size(Y,2);
     for jj=1:n_run
         c = cvpartition(size(X,1),'kfold',n_fold);
-        [coeff,soglie]=genera_rete(K,size(X,2));
-        net=struct('soglie',soglie,'coeff',coeff,'dimensione',K,'lambda',lambda);
+        net=genera_rete(K,size(X,2),lambda);
         generagrafo;
         for ii = 1:c.NumTestSets
 
@@ -14,14 +14,13 @@ function [] = simulaz_regressione_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi
 
             start=1;
             n_online=ceil(size(X_train,1)/batch);
-            batchsol=zeros(K,1);
-            distrsol=zeros(K,1);
-            distrsol2=zeros(K,1);
-            K0=net.lambda*eye(K);
+            batch_sol=zeros(K,m); distr_sol=zeros(K,m); local_sol=zeros(K,m);
+            
+            K_batch=net.lambda*eye(K);
 
             for cc=1:n_nodi
-                K0dist(:,:,cc)=net.lambda*eye(K);
-                K0dist2=K0dist;
+                K_dist(:,:,cc)=net.lambda*eye(K);
+                K_local=K_dist;
             end
 
             for kk=1:n_online
@@ -36,15 +35,15 @@ function [] = simulaz_regressione_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi
                 if size(Xtemp,1)>=n_nodi
                     distributor = cvpartition(size(Xtemp,1),'K',n_nodi);
 
-                    [batchsol,K0]=rvflreg_sequenz(K0,Xtemp,Ytemp,batchsol,net);
+                    [batch_sol,K_batch]=rvfl_rls(K_batch,Xtemp,Ytemp,batch_sol,net);
 
-                    [distrsol,K0dist]=distributed_regressiononlineseriale(K0dist,Xtemp,Ytemp,distrsol,net,W,n_iter,distributor);
+                    [distr_sol,K_dist]=distributed_rvfl_rls_seriale(K_dist,Xtemp,Ytemp,distr_sol,net,W,n_iter,distributor);
 
-                    [distrsol2,K0dist2]=distributed_regressiononlineseriale(K0dist2,Xtemp,Ytemp,distrsol2,net,W,0,distributor);
+                    [local_sol,K_local]=distributed_rvfl_rls_seriale(K_local,Xtemp,Ytemp,local_sol,net,W,0,distributor);
 
-                    batchNMSE(kk,ii)=test_reg(X_test,Y_test,net,batchsol);
-                    distrNMSE(kk,ii)=test_reg(X_test,Y_test,net,distrsol);
-                    NMSEtest(kk,ii)=test_reg(X_test,Y_test,net,distrsol2);
+                    batch_NRMSE(kk,ii)=test_reg(X_test,Y_test,net,batch_sol);
+                    distr_NRMSE(kk,ii)=test_reg(X_test,Y_test,net,distr_sol);
+                    local_NRMSE(kk,ii)=test_reg(X_test,Y_test,net,local_sol);
 
                     start=(start+batch);
                 else
@@ -52,9 +51,9 @@ function [] = simulaz_regressione_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi
                 end
             end  
         end
-        NMSE(:,1,jj)=mean(batchNMSE,2);
-        NMSE(:,2,jj)=mean(distrNMSE,2);
-        NMSE(:,3,jj)=mean(NMSEtest,2);
+        NMSE(:,1,jj)=mean(batch_NRMSE,2);
+        NMSE(:,2,jj)=mean(distr_NRMSE,2);
+        NMSE(:,3,jj)=mean(local_NRMSE,2);
         fprintf('run %i di %i completo\n',jj,n_run);
     end
     devst=std(NMSE,0,3);
@@ -64,11 +63,11 @@ function [] = simulaz_regressione_online(X,Y,n_fold,n_run,K,lambda,n_iter,n_nodi
     fprintf('Dati distribuiti con consensus:     %.4f        %.4f\n\n',mean(NMSE(n_online,2),3),devst(n_online,2));
     fprintf('Dati distribuiti senza consensus:   %.4f        %.4f\n\n',mean(NMSE(n_online,3),3),devst(n_online,3));
     
-    errorbar(1:size(batchNMSE,1),mean(NMSE(:,1),3),devst(:,1),'k--','LineWidth',2);
+    errorbar(1:size(batch_NRMSE,1),mean(NMSE(:,1),3),devst(:,1),'k--','LineWidth',2);
     hold on
-    errorbar(1:size(batchNMSE,1),mean(NMSE(:,2),3),devst(:,2),'b','LineWidth',2);
+    errorbar(1:size(batch_NRMSE,1),mean(NMSE(:,2),3),devst(:,2),'b','LineWidth',2);
     hold on
-    errorbar(1:size(batchNMSE,1),mean(NMSE(:,3),3),devst(:,3),'r','LineWidth',2);
+    errorbar(1:size(batch_NRMSE,1),mean(NMSE(:,3),3),devst(:,3),'r','LineWidth',2);
     
     box on;
     grid on;

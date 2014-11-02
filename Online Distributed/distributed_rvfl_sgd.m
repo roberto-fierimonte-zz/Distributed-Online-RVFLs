@@ -1,4 +1,4 @@
-function [soluzione,aus] = distributed_regression_sgd(X1,Y1,sol_prec,aus_prec,rete,W,mu_zero,max_iter)
+function [soluzione,aus] = distributed_rvfl_sgd(X1,Y1,sol_prec,aus_prec,rete,W,mu_zero,max_iter)
 %DISTRIBUTED_REGRESSION_SGD definisce un algoritmo per problemi di 
 %regressione e classificazione binaria in sistemi distribuiti in cui per 
 %ogni nodo del sistema la macchina per l'apprendimento è definita da una 

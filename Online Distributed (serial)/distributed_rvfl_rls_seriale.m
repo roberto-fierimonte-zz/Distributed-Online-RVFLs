@@ -1,33 +1,33 @@
-function [soluzione,K1] = distributed_regressiononlineseriale(K0,X1,Y1,sol_prec,rete,W,n_iter,cvpart)
-%DISTRIBUTED_REGRESSIONONLINE definisce un algoritmo per problemi di 
-%regressione e classificazione binaria in sistemi distribuiti in cui per 
-%ogni nodo del sistema la macchina per l'apprendimento è definita da una 
-%RVFL, i parametri sono determinati attraverso un algortimo di consensus
-%e in cui siano forniti nuovi dati e si desideri aggiornare la stima dei
-%parametri
+function [soluzione,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,rete,W,max_iter,cvpart)
+%DISTRIBUTED_RVFL_RLS definisce un algoritmo per problemi di Machine
+%Learningmin sistemi distribuiti in cui per ogni nodo del sistema la 
+%macchina per l'apprendimento è definita da una RVFL, i parametri sono 
+%determinati attraverso un algortimo di consensus e in cui siano forniti 
+%nuovi dati e si desideri aggiornare la stima dei parametri
 %
 %Input: K0: pseudoinversa (K x K) distribuita relativa all'iterazione 
 %           precedente
 %       X1: matrice p1 x n dei nuovi campioni di ingresso
-%       Y1: vettore dei nuovi campioni di uscita (p1 campioni)
+%       Y1: matrice p1 x m dei nuovi campioni di uscita
 %       sol_prec: vettore dei parametri della rete stimati attraverso i
-%           campioni già noti (K parametri)
+%           campioni già noti (K x m parametri)
 %       rete: struttura che contiene le informazioni relative alla RVFL
 %           (dimensione dell'espansione, pesi e soglie della combinazione
 %           affine e parametro di regolarizzazione)
 %       W: matrice dei pesi associati al sistema distribuito (deve soddisfare
 %           opportune proprietà)
-%       n_iter: intero che definisce il numero di iterazioni del consensus
+%       max_iter: intero che definisce il numero massimo di iterazioni del 
+%           consensus
 %       cvpart: oggetto di tipo cvpartition usato per distribuire i dati nel
 %           sistema
 %
-%Output: soluzione: vettore dei parametri del modello (K parametri)
+%Output: soluzione: matrice dei parametri del modello (K x m parametri)
 %        K1: pseudoinversa (K x K) distribuita elativa all'iterazione 
 %           corrente   
 
-%Passo 1: estraggo le dimensioni del dataset
+%Passo 1: estraggo le dimensioni del dataset e del grafo
     pX1=size(X1,1);
-    pY1=size(Y1,1);
+    [pY1,m]=size(Y1);
     n_nodi=size(W,1);
     
 %Se i campioni di ingresso e uscita sono di numero diverso restituisco un
@@ -51,7 +51,7 @@ function [soluzione,K1] = distributed_regressiononlineseriale(K0,X1,Y1,sol_prec,
         end
     else
         
-        beta = zeros(rete.dimensione,n_nodi);
+        beta = zeros(rete.dimensione,m,n_nodi);
         K1=zeros(rete.dimensione,rete.dimensione,n_nodi);
         
         for kk=1:n_nodi
@@ -67,26 +67,33 @@ function [soluzione,K1] = distributed_regressiononlineseriale(K0,X1,Y1,sol_prec,
 %Passo 5: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
 %il sistema linare        
             if size(X1local,1)>0
-                beta(:,kk)=sol_prec+K1(:,:,kk)\A1'*(Y1local-A1*sol_prec);
+                beta(:,:,kk)=sol_prec+K1(:,:,kk)\A1'*(Y1local-A1*sol_prec);
             else
-                beta(:,kk)=sol_prec;
+                beta(:,:,kk)=sol_prec;
             end
         end
     
-        if n_iter==0
-            soluzione=beta(:,1);
+        if max_iter==0
+            soluzione=beta(:,:,1);
         else
+            beta_avg_real = mean(beta, 3);
             gamma=beta;
 
-            for ii = 1:n_iter
-                    nuovo=gamma;
-                    gamma=nuovo*W;
+            for ii = 1:max_iter
+                nuovo=gamma;
+                for kk=1:n_nodi
+                    temp=zeros(rete.dimensione,m);
+                    for qq=1:n_nodi
+                        temp=temp+nuovo(:,:,qq)*W(kk,qq);
+                    end
+                    gamma(:,:,kk)=temp;
+                end
+                if all(all(all((abs(repmat(beta_avg_real, 1, 1, ...
+                        size(gamma, 3)) - gamma) <= 10^-6))))
+                    soluzione=gamma(:,:,1);
+                    break
+                end
             end
-
-            beta_avg_real = mean(beta, 2);
-            assert(all(all((abs(repmat(beta_avg_real, 1, size(gamma, 2)) - gamma) <= 10^-6))), 'Errore: consenso non raggiunto :(');
-
-            soluzione=gamma(:,1);
         end
     end
 end

@@ -1,21 +1,20 @@
-function [errore] = test_class(X_test,Y_test,rete,beta)
-%TEST_CLASS misura l'errore di classificazione del modello definito da una
-%RVFL sul test set
+function [error] = test_class(X_test,Y_test,net,beta)
+%TEST_CLASS measure test error for a RVFL in multiclassification problems
 %
-%Input: X_test: matrice p x n dei campioni di test (p campioni di
-%           dimensione n)
-%       Y_test: vettore dei campioni di uscita (p campioni)
-%       rete: struttura che contiene le informazioni relative alla RVFL
-%           (dimensione dell'espansione, pesi e soglie della combinazione
-%           affine e parametro di regolarizzazione)
-%       beta: vettore dei parametri associati al modello
+%Input: X_test: (p x n) matrix of input test patterns
+%       Y_test: (p x m) matrix of output test patterns (each column
+%           correspond to a class)
+%       net: struct object that gather the informations about the RVFL
+%           (number of hidden node, hidden parameters and regularization
+%           parameter)
+%       beta: (K x m) matrix of the RVFL output weights
 %
-%Output: Errore: scalare che misura la frazione di campioni erroneamente
-%           classificati sul totale dei campioni di test
+%Output: error: percentage of misclassified test patterns over the total
+%           of test patterns
 
-pX=size(X_test,1);
-esp=(exp(-(bsxfun(@plus,X_test*(rete.coeff)',rete.soglie')))+1).^-1;
-uscita=(vec2ind((esp*beta)'))';
-errore=1/(pX)*sum(sum(uscita~=Y_test));
+    pX=size(X_test,1);
+    esp=(exp(-(bsxfun(@plus,X_test*(net.coeff)',net.bias')))+1).^-1;
+    exit=(vec2ind((esp*beta)'))';
+    error=1/(pX)*sum(sum(exit~=Y_test));
 end
 

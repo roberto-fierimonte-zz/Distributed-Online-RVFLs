@@ -1,5 +1,6 @@
-function [] = simulaz_classbin_batch(X,Y,n_fold,n_run,K,lambda,n_iter,vett_nodi)
-
+function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
+    
+    X=dataset.X; Y=dataset.Y;
     errore=zeros(size(vett_nodi,2),4,n_run*n_fold);
     train_time=zeros(size(vett_nodi,2),4,n_run*n_fold);
     cons_iter=zeros(size(vett_nodi,2),n_run*n_fold+1);
@@ -9,9 +10,12 @@ function [] = simulaz_classbin_batch(X,Y,n_fold,n_run,K,lambda,n_iter,vett_nodi)
         
         for jj=1:n_run
             
-            c = cvpartition(Y,'kfold',n_fold);
-            [coeff,soglie]=genera_rete(K,size(X,2));
-            net=struct('soglie',soglie,'coeff',coeff,'dimensione',K,'lambda',lambda);
+            if strcmp(dataset.type,'BC')
+                c = cvpartition(Y,'kfold',n_fold);
+            else
+                c = cvpartition(size(X,1),'kfold',n_fold);
+            end
+            net=genera_rete(K,size(X,2),lambda);
             generagrafo;
 
             errore(ind,1)= n_nodi;
@@ -28,22 +32,32 @@ function [] = simulaz_classbin_batch(X,Y,n_fold,n_run,K,lambda,n_iter,vett_nodi)
                 if n_nodi == 1
                     distributor = 0;
                 else
-                    distributor = cvpartition(Y_train,'K',n_nodi);
+                    if strcmp(dataset.type,'BC')
+                        distributor = cvpartition(Y_train,'kfold',n_nodi);
+                    else
+                        distributor = cvpartition(size(X_train,1),'kfold',n_nodi);
+                    end
                 end
                     tic;
-                    batch_sol=distributed_regressionseriale(X_train,Y_train,net,1,n_iter,distributor);
+                    batch_sol=rvfl(X_train,Y_train,net);
                     batch_time=toc;
-                    batch_err=test_classbin(X_test,Y_test,net,batch_sol);
                 
                     tic;
-                    [distr_sol,iterations]=distributed_regressionseriale(X_train,Y_train,net,W,n_iter,distributor);
+                    [distr_sol,iterations]=distributed_rvfl_seriale(X_train,Y_train,net,W,n_iter,distributor);
                     distr_time=toc;
-                    distr_err=test_classbin(X_test,Y_test,net,distr_sol);
 
                     tic;
-                    local_sol=distributed_regressionseriale(X_train,Y_train,net,W,0,distributor);
+                    local_sol=distributed_rvfl_seriale(X_train,Y_train,net,W,0,distributor);
                     local_time=toc;
-                    local_err=test_classbin(X_test,Y_test,net,local_sol);
+                    if strcmp(dataset.type,'BC')
+                        batch_err=test_classbin(X_test,Y_test,net,batch_sol);
+                        distr_err=test_classbin(X_test,Y_test,net,distr_sol);
+                        local_err=test_classbin(X_test,Y_test,net,local_sol);
+                    else
+                        batch_err=test_class(X_test,vec2ind(Y_test')',net,batch_sol);
+                        distr_err=test_class(X_test,vec2ind(Y_test')',net,distr_sol);
+                        local_err=test_class(X_test,vec2ind(Y_test')',net,local_sol);
+                    end
 
                 errore(ind,:,(jj-1)*n_fold+ii)=[0,batch_err,distr_err,local_err];
                 train_time(ind,:,(jj-1)*n_fold+ii)=[0,batch_time,distr_time/n_nodi,local_time/n_nodi];

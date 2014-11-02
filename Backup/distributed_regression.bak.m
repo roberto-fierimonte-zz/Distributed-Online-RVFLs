@@ -1,11 +1,11 @@
 function soluzione = distributed_regression(X,Y,rete,W,max_iter)
-%DISTRIBUTED_REGRESSION definisce un algoritmo per problemi di regressione
-%e classificazione binaria in sistemi distribuiti in cui per ogni nodo del 
+%DISTRIBUTED_REGRESSION definisce un algoritmo per problemi di Machine
+%Learning in sistemi distribuiti in cui per ogni nodo del 
 %sistema la macchina per l'apprendimento è definita da una RVFL e i 
 %parametri sono determinati attraverso un algortimo di consensus.
 %
 %Input: X: matrice p x n dei campioni di ingresso (p campioni di dimensione n)
-%       Y: vettore dei campioni di uscita (p campioni)
+%       Y: vettore dei campioni di uscita (p campioni di dimensione m)
 %       rete: struttura che contiene le informazioni relative alla RVFL
 %           (dimensione dell'espansione, pesi e soglie della combinazione
 %           affine e parametro di regolarizzazione)
@@ -14,7 +14,7 @@ function soluzione = distributed_regression(X,Y,rete,W,max_iter)
 %       max_iter: intero che definisce il numero massimo di iterazioni del 
 %           consensus
 %
-%Output: soluzione: vettore dei parametri del modello (K parametri)
+%Output: soluzione: vettore dei parametri del modello (K x m parametri)
 
 %Passo 1: estraggo le dimensioni del dataset
     pX=size(X,1);

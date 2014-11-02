@@ -1,5 +1,5 @@
-function [soluzione,aus] = lms_momentum_seriale(X1,Y1,sol_prec,aus_prec,C,...
-    mu_zero,rete,W,count,max_iter,cvpart)
+function [soluzione,aus] = rvfl_sgd_distributed_seriale(X1,Y1,sol_prec,...
+aus_prec,C,mu_zero,rete,W,count,max_iter,cvpart)
 %DISTRIBUTED_REGRESSION_LMS definisce un algoritmo per problemi di 
 %regressione e classificazione binaria in sistemi distribuiti in cui per 
 %ogni nodo del sistema la macchina per l'apprendimento è definita da una 
@@ -32,7 +32,7 @@ function [soluzione,aus] = lms_momentum_seriale(X1,Y1,sol_prec,aus_prec,C,...
 
 %Passo 1: estraggo le dimensioni del dataset
     pX1=size(X1,1);
-    pY1=size(Y1,1);
+    [pY1,m]=size(Y1);
     n_nodi=size(W,1);
     
 %Se i campioni di ingresso e uscita sono di numero diverso restituisco un
@@ -49,8 +49,8 @@ function [soluzione,aus] = lms_momentum_seriale(X1,Y1,sol_prec,aus_prec,C,...
         A1=(exp(-aff)+1).^-1;
         
         if size(X1,1)>0
-            soluzione=aus_prec-C*(mu_zero)^-count*((A1'*A1*aus_prec-A1'*Y1)/size(X1,1)+...
-                rete.lambda*aus_prec);
+            soluzione=aus_prec-C*(mu_zero)^-count*((A1'*A1*aus_prec-...
+                A1'*Y1)/size(X1,1)+ rete.lambda*aus_prec);
             aus=soluzione+count/(count+3)*(soluzione-sol_prec);
         else
             soluzione=sol_prec;
@@ -58,8 +58,8 @@ function [soluzione,aus] = lms_momentum_seriale(X1,Y1,sol_prec,aus_prec,C,...
         end
     else
         
-        beta = zeros(rete.dimensione,n_nodi);
-        temp = zeros(rete.dimensione,n_nodi);
+        beta = zeros(rete.dimensione,m,n_nodi);
+        temp = zeros(rete.dimensione,m,n_nodi);
         
         for kk=1:n_nodi
             X1local=X1(cvpart.test(kk),:);
@@ -71,21 +71,21 @@ function [soluzione,aus] = lms_momentum_seriale(X1,Y1,sol_prec,aus_prec,C,...
 %Passo 5: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
 %il sistema linare        
             if size(X1local,1)>0
-                beta(:,kk)=aus_prec-C*(mu_zero)^-count*((A1'*A1*aus_prec-...
+                beta(:,:,kk)=aus_prec-C*(mu_zero)^-count*((A1'*A1*aus_prec-...
                     A1'*Y1local)/size(X1,1)+rete.lambda*aus_prec);
-                temp(:,kk)=beta(:,kk)+count/(count+3)*(beta(:,kk)-sol_prec);
+                temp(:,:,kk)=beta(:,:,kk)+count/(count+3)*(beta(:,:,kk)-sol_prec);
             else
-                beta(:,kk)=sol_prec;
-                temp(:,kk)=aus_prec;
+                beta(:,:,kk)=sol_prec;
+                temp(:,:,kk)=aus_prec;
             end
         end
     
         if max_iter==0
-            soluzione=beta(:,1);
-            aus=temp(:,1);
+            soluzione=beta(:,:,1);
+            aus=temp(:,:,1);
         else
-            beta_avg_real = mean(beta, 2);
-            temp_avg_real = mean(temp,2);
+            beta_avg_real = mean(beta, 3);
+            temp_avg_real = mean(temp,3);
             gamma=beta;
             vu=temp;
 
