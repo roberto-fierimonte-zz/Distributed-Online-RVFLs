@@ -3,7 +3,7 @@ function [] = simulaz_reg_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,bat
     X=dataset.X; Y=dataset.Y; m=size(Y,2);
     for jj=1:n_run
         c = cvpartition(size(X,1),'kfold',n_fold);
-        net=genera_rete(K,size(X,2),lambda);
+        net=generate_RVFL(K,size(X,2),lambda);
         generagrafo;
         for ii = 1:c.NumTestSets
 

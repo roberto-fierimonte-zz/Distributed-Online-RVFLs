@@ -8,6 +8,9 @@ font_name = 'TimesNewRoman';    % Font name
 line_width = 1.5;               % LineWidth
 
 % Plot instructions
+figure();
+figshift;
+hold on
 plot(errore(:,1,1),(mean(errore(:,2,:),3)),'k--','LineWidth',line_width);
 hold on
 errorbar(errore(:,1,1),(mean(errore(:,3,:),3)),devst_err(:,3),'b','LineWidth',line_width);

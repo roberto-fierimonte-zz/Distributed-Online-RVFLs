@@ -12,7 +12,7 @@ function [] = simulaz_reg_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
         for jj=1:n_run
             
             c = cvpartition(size(X,1),'kfold',n_fold);
-            net=genera_rete(K,size(X,2),lambda);
+            net=generate_RVFL(K,size(X,2),lambda);
             generagrafo;
 
             NRMSE(ind,1)= n_nodi;

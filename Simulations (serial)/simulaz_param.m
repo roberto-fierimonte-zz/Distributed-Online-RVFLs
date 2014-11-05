@@ -19,7 +19,7 @@ function [] = simulaz_param(dataset,lambdavec,Kmax,n_iter,n_fold)
                 else
                     c = cvpartition(size(X,1),'kfold',n_fold);
                 end
-                net=genera_rete(K,size(X,2),lambda);
+                net=generate_RVFL(K,size(X,2),lambda);
                 errtemp=0;
 
                 for ii = 1:c.NumTestSets

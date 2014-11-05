@@ -15,7 +15,7 @@ function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi
             else
                 c = cvpartition(size(X,1),'kfold',n_fold);
             end
-            net=genera_rete(K,size(X,2),lambda);
+            net=generate_RVFL(K,size(X,2),lambda);
             generagrafo;
 
             errore(ind,1)= n_nodi;
@@ -75,5 +75,7 @@ function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi
     fprintf('Numero medio di iterazioni del consenso: %d\n',round(mean(cons_iter(2,2:end),2)));
     
     prepare_plot_batch_err;
+    prepare_plot_batch_iter;
+    prepare_plot_batch_time;
 end
 

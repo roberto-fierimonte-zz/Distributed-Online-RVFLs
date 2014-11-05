@@ -1,13 +1,14 @@
 function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,batch)
 
     X=dataset.X; Y=dataset.Y; m=size(Y,2);
+    X=[X;X;X;X]; Y=[Y;Y;Y;Y];
     for jj=1:n_run
         if strcmp(dataset.type,'BC')
             c = cvpartition(Y,'kfold',n_fold);
         else
             c = cvpartition(size(X,1),'kfold',n_fold);
         end
-        net=genera_rete(K,size(X,2),lambda);
+        net=generate_RVFL(K,size(X,2),lambda);
         generagrafo;
         for ii = 1:c.NumTestSets
 
@@ -18,8 +19,10 @@ function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,b
 
             start=1;
             n_online=ceil(size(X_train,1)/batch);
-            batch_sol=zeros(K,m); distr_sol=zeros(K,m); local_sol=zeros(K,m);
-            K_batch=net.lambda*eye(K);
+            centr_sol=zeros(K,m); distr_sol=zeros(K,m); local_sol=zeros(K,m);
+            K_centr=net.lambda*eye(K);
+            
+            sgdcentr_sol=zeros(K,m); sgdcentr_aus=zeros(K,m);
 
             for cc=1:n_nodi
                 K_dist(:,:,cc)=net.lambda*eye(K);
@@ -46,20 +49,24 @@ function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,b
                         end
                     end
 
-                    [batch_sol,K_batch]=rvfl_rls(K_batch,Xtemp,Ytemp,batch_sol,net);
+                    [centr_sol,K_centr]=rvfl_rls(K_centr,Xtemp,Ytemp,centr_sol,net);
 
                     [distr_sol,K_dist]=distributed_rvfl_rls_seriale(K_dist,Xtemp,Ytemp,distr_sol,net,W,n_iter,distributor);
 
                     [local_sol,K_local]=distributed_rvfl_rls_seriale(K_local,Xtemp,Ytemp,local_sol,net,W,0,distributor);
 
+                    [sgdcentr_sol,sgdcentr_aus]=rvfl_sgd(Xtemp,Ytemp,1,1,sgdcentr_sol,sgdcentr_aus,kk,net);
+
                     if strcmp(dataset.type,'BC')
-                        batch_err(kk,ii)=test_classbin(X_test,Y_test,net,batch_sol);
+                        centr_err(kk,ii)=test_classbin(X_test,Y_test,net,centr_sol);
                         distr_err(kk,ii)=test_classbin(X_test,Y_test,net,distr_sol);
                         local_err(kk,ii)=test_classbin(X_test,Y_test,net,local_sol);
+                        sgdcentr_err(kk,ii)=test_classbin(X_test,Y_test,net,sgdcentr_sol);
                     else
-                        batch_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,batch_sol);
+                        centr_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,centr_sol);
                         distr_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,distr_sol);
                         local_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,local_sol);
+                        sgdcentr_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,sgdcentr_sol);
                     end
 
                     start=(start+batch);
@@ -68,16 +75,17 @@ function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,b
                 end
             end  
         end
-        errore(:,1,jj)=mean(batch_err,2);
+        errore(:,1,jj)=mean(centr_err,2);
         errore(:,2,jj)=mean(distr_err,2);
         errore(:,3,jj)=mean(local_err,2);
+        errore(:,4,jj)=mean(sgdcentr_err,2);
         fprintf('run %i di %i completo\n',jj,n_run);
     end
     
     if strcmp(dataset.type,'BC')
-        baseline=1/2*ones(1,3,n_run);
+        baseline=1/2*ones(1,4,n_run);
     else
-        baseline=(m-1)/m*ones(1,3,n_run);
+        baseline=(m-1)/m*ones(1,4,n_run);
     end
     
     errore=[baseline; errore];

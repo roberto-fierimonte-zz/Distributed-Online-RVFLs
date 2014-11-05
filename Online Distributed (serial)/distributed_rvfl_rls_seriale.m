@@ -1,4 +1,4 @@
-function [soluzione,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,rete,W,max_iter,cvpart)
+function [sol,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,net,W,max_iter,cvpart)
 %DISTRIBUTED_RVFL_RLS definisce un algoritmo per problemi di Machine
 %Learningmin sistemi distribuiti in cui per ogni nodo del sistema la 
 %macchina per l'apprendimento è definita da una RVFL, i parametri sono 
@@ -28,7 +28,7 @@ function [soluzione,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,rete,W,
 %Passo 1: estraggo le dimensioni del dataset e del grafo
     pX1=size(X1,1);
     [pY1,m]=size(Y1);
-    n_nodi=size(W,1);
+    n_nodes=size(W,1);
     
 %Se i campioni di ingresso e uscita sono di numero diverso restituisco un
 %errore
@@ -37,28 +37,28 @@ function [soluzione,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,rete,W,
     end
         
 %Passo 4: calcolo l'uscita dell'espansione funzionale per ogni nodo del sistema  
-    if n_nodi == 1
-        scal=X1*rete.coeff';
-        aff=bsxfun(@plus,scal,rete.soglie');
+    if n_nodes == 1
+        scal=X1*net.coeff';
+        aff=bsxfun(@plus,scal,net.bias');
         A1=(exp(-aff)+1).^-1;
         
         K1=(K0+A1'*A1);
         
         if size(X1,1)>0
-            soluzione=sol_prec+K1\A1'*(Y1-A1*sol_prec);
+            sol=sol_prec+K1\A1'*(Y1-A1*sol_prec);
         else
-            soluzione=sol_prec;
+            sol=sol_prec;
         end
     else
         
-        beta = zeros(rete.dimensione,m,n_nodi);
-        K1=zeros(rete.dimensione,rete.dimensione,n_nodi);
+        beta = zeros(net.dimension,m,n_nodes);
+        K1=zeros(net.dimension,net.dimension,n_nodes);
         
-        for kk=1:n_nodi
+        for kk=1:n_nodes
             X1local=X1(cvpart.test(kk),:);
             Y1local=Y1(cvpart.test(kk),:);
-            scal = X1local*rete.coeff';
-            aff1 = bsxfun(@plus,scal,rete.soglie');
+            scal = X1local*net.coeff';
+            aff1 = bsxfun(@plus,scal,net.bias');
             exit1 = (exp(-aff1)+1).^-1;
             A1 = exit1;
 
@@ -74,23 +74,23 @@ function [soluzione,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,rete,W,
         end
     
         if max_iter==0
-            soluzione=beta(:,:,1);
+            sol=beta(:,:,1);
         else
             beta_avg_real = mean(beta, 3);
             gamma=beta;
 
             for ii = 1:max_iter
                 nuovo=gamma;
-                for kk=1:n_nodi
-                    temp=zeros(rete.dimensione,m);
-                    for qq=1:n_nodi
+                for kk=1:n_nodes
+                    temp=zeros(net.dimension,m);
+                    for qq=1:n_nodes
                         temp=temp+nuovo(:,:,qq)*W(kk,qq);
                     end
                     gamma(:,:,kk)=temp;
                 end
                 if all(all(all((abs(repmat(beta_avg_real, 1, 1, ...
                         size(gamma, 3)) - gamma) <= 10^-6))))
-                    soluzione=gamma(:,:,1);
+                    sol=gamma(:,:,1);
                     break
                 end
             end

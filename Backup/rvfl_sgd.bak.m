@@ -1,4 +1,4 @@
-function [beta,aus] = rvfl_sgd(X1,Y1,C,alfa,beta_prec,aus_prec,count,net)
+function [beta,aus] = rvfl_sgd(X1,Y1,C,alfa,sol_prec,aus_prec,count,net)
 %RVFL_RLS definisce un algoritmo di addestramento per una rete neurale di
 %tipo random vector functional-link da utilizzare in problemi di Machine
 %Learning in cui siano forniti nuovi dati e si desideri aggiornare la stima 
@@ -30,10 +30,22 @@ function [beta,aus] = rvfl_sgd(X1,Y1,C,alfa,beta_prec,aus_prec,count,net)
 %relativamente ai nuovi dati
     scal1 = X1*net.coeff';
     aff1 = bsxfun(@plus,scal1,net.bias');
-    H1 = (exp(-aff1)+1).^-1;
+    A1 = (exp(-aff1)+1).^-1;
     
 %Passo 4: aggiorno la soluzione utilizzando i nuovi dati
-    beta=aus_prec-C^(count-1)*(1/pX1*(H1'*H1*aus_prec-H1'*Y1)+...
-            net.lambda*aus_prec);
-    aus=beta+count/(count+3)*(beta-beta_prec);
+    temp=aus_prec-alfa*((A1'*A1*aus_prec-A1'*Y1)/size(X1,1)+...
+                net.lambda*aus_prec);
+    esp=(exp(-bsxfun(@plus,X*(net.coeff)',net.soglie'))+1).^-1;
+    uscita=sign(esp*temp);
+    err=1/(size(X,1))*sum(uscita~=Y);
+    
+    while err>err_prec
+        alfa=alfa/2;
+        temp=aus_prec-alfa*((A1'*A1*aus_prec-A1'*Y1)/size(X1,1)+...
+                net.lambda*aus_prec);
+        uscita=sign(esp*temp);
+        err=1/(size(X,1))*sum(uscita~=Y);
+    end
+    beta=temp;
+    aus=beta+count/(count+3)*(beta-sol_prec);
 end

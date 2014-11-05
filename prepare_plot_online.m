@@ -8,10 +8,11 @@ font_name = 'TimesNewRoman';    % Font name
 line_width = 1.5;               % LineWidth
 
 % Plot instructions
-plot(0:size(errore,1)-1,(mean(errore(:,1,:),3)),'k--','LineWidth',line_width);
+plot(0:size(errore,1)-1,(mean(errore(:,1,:),3)),'b','LineWidth',line_width);
 hold on
-errorbar(0:size(errore,1)-1,(mean(errore(:,2,:),3)),devst(:,2),'b','LineWidth',line_width);
-errorbar(0:size(errore,1)-1,(mean(errore(:,3,:),3)),devst(:,3),'r','LineWidth',line_width);
+plot(0:size(errore,1)-1,(mean(errore(:,2,:),3)),'r','LineWidth',line_width);
+plot(0:size(errore,1)-1,(mean(errore(:,3,:),3)),'k','LineWidth',line_width);
+plot(0:size(errore,1)-1,(mean(errore(:,4,:),3)),'g','LineWidth',line_width);
 
 % Set various properties
 xlim([0 size(errore,1)]);

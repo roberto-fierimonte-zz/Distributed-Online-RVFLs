@@ -8,8 +8,10 @@ font_name = 'TimesNewRoman';    % Font name
 line_width = 1.5;               % LineWidth
 
 % Plot instructions
+figure();
+figshift;
 hold on
-plot(cons_iter(:,1),(mean(cons_iter(:,2:end),2)),'k--','LineWidth',line_width);
+plot(cons_iter(:,1),(mean(cons_iter(:,2:end),2)),'k','LineWidth',line_width);
 
 % Set various properties
 xlim([0 55]);
@@ -23,7 +25,7 @@ ylabel('Number of iterations', 'FontSize', font_size, 'FontName', font_name);
 set(gca, 'FontSize', font_size);
 set(gca, 'FontName', font_name);
 
-h_legend=legend('Random Topology (p=0.5)', 'NorthWest');
+h_legend=legend('Random Topology (p=0.5)','Location' ,'NorthWest');
 set(h_legend,'FontSize', font_size_leg);
 set(h_legend,'FontName', font_name);
 

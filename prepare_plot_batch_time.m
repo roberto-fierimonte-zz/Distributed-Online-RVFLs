@@ -8,6 +8,9 @@ font_name = 'TimesNewRoman';    % Font name
 line_width = 1.5;               % LineWidth
 
 % Plot instructions
+figure();
+figshift;
+hold on
 plot(train_time(:,1,1),(mean(train_time(:,2,:),3)),'k--','LineWidth',line_width);
 hold on
 plot(train_time(:,1,1),(mean(train_time(:,3,:),3)),'b','LineWidth',line_width);
