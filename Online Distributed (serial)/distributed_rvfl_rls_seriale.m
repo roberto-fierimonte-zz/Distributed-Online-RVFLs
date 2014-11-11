@@ -1,4 +1,4 @@
-function [sol,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,net,W,max_iter,cvpart)
+function [sol,K1,n_iter] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,net,W,max_iter,cvpart)
 %DISTRIBUTED_RVFL_RLS definisce un algoritmo per problemi di Machine
 %Learningmin sistemi distribuiti in cui per ogni nodo del sistema la 
 %macchina per l'apprendimento è definita da una RVFL, i parametri sono 
@@ -49,6 +49,8 @@ function [sol,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,net,W,max_ite
         else
             sol=sol_prec;
         end
+        n_iter=0;
+        
     else
         
         beta = zeros(net.dimension,m,n_nodes);
@@ -75,22 +77,23 @@ function [sol,K1] = distributed_rvfl_rls_seriale(K0,X1,Y1,sol_prec,net,W,max_ite
     
         if max_iter==0
             sol=beta(:,:,1);
+            n_iter=0;
         else
-            beta_avg_real = mean(beta, 3);
             gamma=beta;
 
             for ii = 1:max_iter
-                nuovo=gamma;
+                new=gamma;
                 for kk=1:n_nodes
                     temp=zeros(net.dimension,m);
                     for qq=1:n_nodes
-                        temp=temp+nuovo(:,:,qq)*W(kk,qq);
+                        temp=temp+new(:,:,qq)*W(kk,qq);
                     end
                     gamma(:,:,kk)=temp;
+                    delta(kk)=(norm(gamma(:,:,kk)-new(:,:,kk)))^2;
                 end
-                if all(all(all((abs(repmat(beta_avg_real, 1, 1, ...
-                        size(gamma, 3)) - gamma) <= 10^-6))))
+                if all(delta<=10^-6)
                     sol=gamma(:,:,1);
+                    n_iter=ii;
                     break
                 end
             end

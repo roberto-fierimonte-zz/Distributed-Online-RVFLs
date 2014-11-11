@@ -12,10 +12,10 @@ plot(0:size(errore,1)-1,(mean(errore(:,1,:),3)),'b','LineWidth',line_width);
 hold on
 plot(0:size(errore,1)-1,(mean(errore(:,2,:),3)),'r','LineWidth',line_width);
 plot(0:size(errore,1)-1,(mean(errore(:,3,:),3)),'k','LineWidth',line_width);
-plot(0:size(errore,1)-1,(mean(errore(:,4,:),3)),'g','LineWidth',line_width);
+%plot(0:size(errore,1)-1,(mean(errore(:,4,:),3)),'g','LineWidth',line_width);
 
 % Set various properties
-xlim([0 size(errore,1)]);
+xlim([0 size(errore,1)-1]);
 
 box on;
 grid on;

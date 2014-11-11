@@ -90,9 +90,9 @@ function [sol,n_iter] = distributed_rvflR_seriale(X,Y,net,W,max_iter,cvpart)
                     P(:,:,kk)=tempP;
                     q(:,:,kk)=tempq;
                     gamma(:,:,kk)=P(:,:,kk)\q(:,:,kk);
+                    delta(kk)=(norm(gamma(:,:,kk)-oldP(:,:,kk)\oldq(:,:,kk)))^2;
                 end
-                if all(all(all((abs(repmat(beta_avg_real, 1, 1, ...
-                        size(gamma, 3)) - gamma) <= 10^-6))))
+                if all(delta<=10^-6)
                     sol=gamma(:,:,1);
                     n_iter=ii;
                     break

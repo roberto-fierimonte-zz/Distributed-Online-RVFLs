@@ -74,7 +74,6 @@ function [sol,n_iter] = distributed_rvfl_seriale(X,Y,net,W,max_iter,cvpart)
             sol=local(:,:,1);
             n_iter=0;
         else
-            beta_avg_real = mean(local, 3);
             gamma=local;
 
             for ii = 1:max_iter
@@ -85,9 +84,9 @@ function [sol,n_iter] = distributed_rvfl_seriale(X,Y,net,W,max_iter,cvpart)
                         temp=temp+new(:,:,qq)*W(kk,qq);
                     end
                     gamma(:,:,kk)=temp;
+                    delta(kk)=(norm(gamma(:,:,kk)-new(:,:,kk)))^2;
                 end
-                if all(all(all((abs(repmat(beta_avg_real, 1, 1, ...
-                        size(gamma, 3)) - gamma) <= 10^-6))))
+                if all(delta<=10^-6)
                     sol=gamma(:,:,1);
                     n_iter=ii;
                     break

@@ -39,7 +39,7 @@ function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi
                     end
                 end
                     tic;
-                    batch_sol=rvfl(X_train,Y_train,net);
+                    batch_sol=distributed_rvfl_seriale(X_train,Y_train,net,1,n_iter,distributor);
                     batch_time=toc;
                 
                     tic;

@@ -17,7 +17,7 @@ plot(train_time(:,1,1),(mean(train_time(:,3,:),3)),'b','LineWidth',line_width);
 plot(train_time(:,1,1),(mean(train_time(:,4,:),3)),'r','LineWidth',line_width);
 
 % Set various properties
-xlim([0 55]);
+xlim([0 vett_nodi(end)+2]);
 
 box on;
 grid on;

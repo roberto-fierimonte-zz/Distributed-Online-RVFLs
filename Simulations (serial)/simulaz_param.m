@@ -29,7 +29,8 @@ function [] = simulaz_param(dataset,lambdavec,Kmax,n_iter,n_fold)
                     X_test=X(c.test(ii),:);
                     Y_test=Y(c.test(ii),:);
 
-                    sol=rvfl(X_train,Y_train,net);
+                    c = cvpartition(size(X_train,1),'kfold',5);
+                    sol=distributed_rvfl_seriale(X_train,Y_train,net,ones(5)/5,500,c);
                     
                     if strcmp(dataset.type,'BC')
                         errtemp=errtemp + test_classbin(X_train,Y_train,net,sol);

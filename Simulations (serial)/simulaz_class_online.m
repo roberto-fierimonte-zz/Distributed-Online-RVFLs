@@ -1,7 +1,7 @@
 function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,batch)
 
     X=dataset.X; Y=dataset.Y; m=size(Y,2);
-    X=[X;X;X;X]; Y=[Y;Y;Y;Y];
+    X=[X;X]; Y=[Y;Y];
     for jj=1:n_run
         if strcmp(dataset.type,'BC')
             c = cvpartition(Y,'kfold',n_fold);
