@@ -50,7 +50,7 @@ function sol = distributed_rvfl_sgd_seriale(X1,Y1,sol_prec,net,W,count,...
         
         if size(X1,1)>0
             alfa=1/norm((H1'*H1)/pX1+net.lambda*eye(net.dimension));
-            sol=sol_prec-alfa/count*((H1'*H1*sol_prec-H1'*Y1)/pX1...
+            sol=sol_prec-alfa*((H1'*H1*sol_prec-H1'*Y1)/pX1...
                 +net.lambda*sol_prec);
         else
             sol=sol_prec;
@@ -69,8 +69,8 @@ function sol = distributed_rvfl_sgd_seriale(X1,Y1,sol_prec,net,W,count,...
 %Passo 5: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
 %il sistema linare        
             if size(X1local,1)>0
-                alfa=1/norm((H1'*H1)/pX1+net.lambda*eye(net.dimension));
-                beta(:,:,kk)=sol_prec-alfa/count*((H1'*H1*sol_prec-H1'*Y1local)...
+                alfa=1/norm((H1'*H1)/size(X1local,1)+net.lambda*eye(net.dimension));
+                beta(:,:,kk)=sol_prec-alfa*((H1'*H1*sol_prec-H1'*Y1local)...
                     /size(X1local,1)+net.lambda*sol_prec);
             else
                 beta(:,:,kk)=sol_prec;
@@ -94,6 +94,7 @@ function sol = distributed_rvfl_sgd_seriale(X1,Y1,sol_prec,net,W,count,...
                 end
                 if all(delta<=10^-6)
                     sol=gamma(:,:,1);
+%                     fprintf('Convergenza raggiunta in %i iterazioni\n',ii);
                     break
                 end
             end
