@@ -2,5 +2,5 @@ rng(1)
 clc
 clear
 load('Datasets/R/statlib_calhousing.mat')
-[X,Y]=preprocess(X,Y);
-simulaz_regressione
+[dataset.X,dataset.Y]=preprocess(dataset);
+simulation

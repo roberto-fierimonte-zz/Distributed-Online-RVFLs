@@ -13,7 +13,7 @@ function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,b
         for ii = 1:c.NumTestSets
 
             X_train=X(c.training(ii),:);
-            Y_train=Y(c.training(ii),:);
+            Y_train=Y(c.training(ii),:); 
             X_test=X(c.test(ii),:);
             Y_test=Y(c.test(ii),:);
 
@@ -22,12 +22,13 @@ function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,b
             centr_sol=zeros(K,m); distr_sol=zeros(K,m); local_sol=zeros(K,m);
             K_centr=net.lambda*eye(K);
             
-            sgdcentr_sol=zeros(K,m); sgdcentr_aus=zeros(K,m);
-
-            for cc=1:n_nodi
-                K_dist(:,:,cc)=net.lambda*eye(K);
-                K_local=K_dist;
-            end
+            sgd_sol=zeros(K,m);
+            
+            K_dist=repmat(K_centr,1,1,n_nodi); K_local=K_dist;
+%             for cc=1:n_nodi
+%                 K_dist(:,:,cc)=net.lambda*eye(K);
+%                 K_local=K_dist;
+%             end
 
             for kk=1:n_online
                 if kk==n_online
@@ -55,18 +56,18 @@ function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,b
 
                     [local_sol,K_local]=distributed_rvfl_rls_seriale(K_local,Xtemp,Ytemp,local_sol,net,W,0,distributor);
 
-                    [sgdcentr_sol,sgdcentr_aus]=rvfl_sgd(Xtemp,Ytemp,1,1,sgdcentr_sol,sgdcentr_aus,kk,net);
+                    sgd_sol=distributed_rvfl_sgd_seriale(Xtemp,Ytemp,sgd_sol,net,W,kk,n_iter,distributor);
 
                     if strcmp(dataset.type,'BC')
                         centr_err(kk,ii)=test_classbin(X_test,Y_test,net,centr_sol);
                         distr_err(kk,ii)=test_classbin(X_test,Y_test,net,distr_sol);
                         local_err(kk,ii)=test_classbin(X_test,Y_test,net,local_sol);
-                        sgdcentr_err(kk,ii)=test_classbin(X_test,Y_test,net,sgdcentr_sol);
+                        sgd_err(kk,ii)=test_classbin(X_test,Y_test,net,sgd_sol);
                     else
                         centr_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,centr_sol);
                         distr_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,distr_sol);
                         local_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,local_sol);
-                        sgdcentr_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,sgdcentr_sol);
+                        sgd_err(kk,ii)=test_class(X_test,vec2ind(Y_test')',net,sgd_sol);
                     end
 
                     start=(start+batch);
@@ -78,7 +79,7 @@ function [] = simulaz_class_online(dataset,n_fold,n_run,K,lambda,n_iter,n_nodi,b
         errore(:,1,jj)=mean(centr_err,2);
         errore(:,2,jj)=mean(distr_err,2);
         errore(:,3,jj)=mean(local_err,2);
-        errore(:,4,jj)=mean(sgdcentr_err,2);
+        errore(:,4,jj)=mean(sgd_err,2);
         fprintf('run %i di %i completo\n',jj,n_run);
     end
     

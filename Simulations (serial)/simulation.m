@@ -48,7 +48,7 @@ else
                 end
             else
                 k=10;
-                n_run=15;
+                n_run=5;
                 on=80;
                 if strcmp(dataset.type,'R')
                     simulaz_reg_online(dataset,k,n_run,K,lambda,max_iter,n_nodi,on);
@@ -66,6 +66,17 @@ else
             n_run=5;
 
             simulaz_param(dataset,lambdavec,Kmax,n_run,n_fold);
+        case 4
+            K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
+            lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
+            
+            n_fold=3;
+            n_run=5;
+            
+            Cvec=logspace(-10,10);
+            alfazerovec=logspace(-10,10);
+            
+            simulaz_param_sgd(K,lambda,dataset,Cvec,alfazerovec,n_run,n_fold);
         otherwise
             error('Ancora non sono pronto per questo! :(');
     end

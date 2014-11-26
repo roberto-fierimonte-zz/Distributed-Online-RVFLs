@@ -11,10 +11,10 @@ line_width = 1.5;               % LineWidth
 figure();
 figshift;
 hold on
-plot(errore(:,1,1),(mean(errore(:,2,:),3)),'k','LineWidth',line_width);
+plot(NSR(:,1,1),(mean(NSR(:,2,:),3)),'k','LineWidth',line_width);
 hold on
-errorbar(errore(:,1,1)+1,(mean(errore(:,3,:),3)),devst_err(:,3),'b','LineWidth',line_width);
-errorbar(errore(:,1,1),(mean(errore(:,4,:),3)),devst_err(:,4),'r','LineWidth',line_width);
+errorbar(NSR(:,1,1)+1,(mean(NSR(:,3,:),3)),devstNSR(:,3),'b','LineWidth',line_width);
+errorbar(NSR(:,1,1),(mean(NSR(:,4,:),3)),devstNSR(:,4),'r','LineWidth',line_width);
 
 % Set various properties
 xlim([0 vett_nodi(end)+2]);
@@ -23,7 +23,7 @@ box on;
 grid on;
 
 xlabel('Nodes of network', 'FontSize', font_size, 'FontName', font_name);
-ylabel('Error [%]', 'FontSize', font_size, 'FontName', font_name);
+ylabel('NSR [dB]', 'FontSize', font_size, 'FontName', font_name);
 
 set(gca, 'FontSize', font_size);
 set(gca, 'FontName', font_name);

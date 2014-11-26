@@ -1,4 +1,4 @@
-function [soluzione,aus] = distributed_rvfl_sgd(X1,Y1,sol_prec,aus_prec,rete,W,mu_zero,max_iter)
+function soluzione = distributed_rvfl_sgd(X1,Y1,sol_prec,rete,W,max_iter)
 %DISTRIBUTED_REGRESSION_SGD definisce un algoritmo per problemi di 
 %regressione e classificazione binaria in sistemi distribuiti in cui per 
 %ogni nodo del sistema la macchina per l'apprendimento è definita da una 
@@ -26,7 +26,6 @@ function [soluzione,aus] = distributed_rvfl_sgd(X1,Y1,sol_prec,aus_prec,rete,W,m
 %           Nesterov
 
 %Passo 1: estraggo le dimensioni del dataset e il numero di nodi
-    tic;
     pX1=size(X1,1);
     pY1=size(Y1,1);
     n_nodi=size(W,1);

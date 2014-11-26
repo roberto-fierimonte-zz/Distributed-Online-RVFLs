@@ -26,8 +26,8 @@ function [] = simulaz_param(dataset,lambdavec,Kmax,n_iter,n_fold)
 
                     X_train=X(c.training(ii),:);
                     Y_train=Y(c.training(ii),:);
-                    X_test=X(c.test(ii),:);
-                    Y_test=Y(c.test(ii),:);
+                    %X_test=X(c.test(ii),:);
+                    %Y_test=Y(c.test(ii),:);
 
                     c = cvpartition(size(X_train,1),'kfold',5);
                     sol=distributed_rvfl_seriale(X_train,Y_train,net,ones(5)/5,500,c);
@@ -35,9 +35,9 @@ function [] = simulaz_param(dataset,lambdavec,Kmax,n_iter,n_fold)
                     if strcmp(dataset.type,'BC')
                         errtemp=errtemp + test_classbin(X_train,Y_train,net,sol);
                     elseif strcmp(dataset.type,'MC')
-                        errtemp=errtemp + test_class(X_test,Y_test,net,sol);
+                        errtemp=errtemp + test_class(X_train,vec2ind(Y_train')',net,sol);
                     else
-                        errtemp=errtemp + test_reg(X_test,Y_test,net,sol);
+                        errtemp=errtemp + test_reg(X_train,Y_train,net,sol);
                     end
                 end
 

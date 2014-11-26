@@ -56,27 +56,19 @@ function [] = simulaz_reg_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
         fprintf('simulazione con %i nodi completa\n',n_nodi);
     end
     
-    devstNMSE=std(NRMSE,0,3);
+    devstNRMSE=std(NRMSE,0,3);
     devstNSR= std(NSR,0,3);
     
-    fprintf('Riepilogo simulazione con 5 nodi:\n-------------------------------------------------------\n');
-    fprintf('                                    Media NMSE:   Dev.St.:   Media NSR:   Dev.St.:\n\n');
-    fprintf('Dati non distribuiti:               %.4f        %.4f     %.4f     %.4f\n\n',mean(NRMSE(2,2,:),3),std(NRMSE(2,2,:)),mean(NSR(2,2,:),3),std(NSR(2,2,:)));
-    fprintf('Dati distribuiti con consensus:     %.4f        %.4f     %.4f     %.4f\n\n',mean(NRMSE(2,3,:),3),std(NRMSE(2,3,:)),mean(NSR(2,3,:),3),std(NSR(2,3,:)));
-    fprintf('Dati distribuiti senza consensus:   %.4f        %.4f     %.4f     %.4f\n\n',mean(NRMSE(2,4,:),3),std(NRMSE(2,4,:)),mean(NSR(2,4,:),3),std(NSR(2,4,:)));
+    fprintf('Riepilogo simulazione con 5 nodi:\n--------------------------------\n');
+    fprintf('                  Media NRMSE:   Dev.St.:   Media NSR:   Dev.St.:\n\n');
+    fprintf('Centralized:      %.4f        %.4f     %.4f     %.4f\n\n',mean(NRMSE(2,2,:),3),std(NRMSE(2,2,:)),mean(NSR(2,2,:),3),std(NSR(2,2,:)));
+    fprintf('Consensus:        %.4f        %.4f     %.4f     %.4f\n\n',mean(NRMSE(2,3,:),3),std(NRMSE(2,3,:)),mean(NSR(2,3,:),3),std(NSR(2,3,:)));
+    fprintf('Local:            %.4f        %.4f     %.4f     %.4f\n\n',mean(NRMSE(2,4,:),3),std(NRMSE(2,4,:)),mean(NSR(2,4,:),3),std(NSR(2,4,:)));
     fprintf('Numero medio di iterazioni del consenso: %d\n',round(mean(cons_iter(2,2:end),2)));
     
-    errorbar(NRMSE(:,1,1),(mean(NRMSE(:,2,:),3)),devstNMSE(:,2),'k--','LineWidth',2);
-    hold on
-    errorbar(NRMSE(:,1,1),(mean(NRMSE(:,3,:),3)),devstNMSE(:,3),'b','LineWidth',2);
-    hold on
-    errorbar(NRMSE(:,1,1),(mean(NRMSE(:,4,:),3)),devstNMSE(:,4),'r','LineWidth',2);
-    
-    xlim([0 55]);
-    
-    box on;
-    grid on;
-    
-    legend('centralizzato','distribuito','distribuito senza consensus','Location', 'NorthWest')
+    prepare_plot_batch_NRMSE;
+    prepare_plot_batch_NSR;
+    prepare_plot_batch_iter;
+    prepare_plot_batch_time;
 end
 
