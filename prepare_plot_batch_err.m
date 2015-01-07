@@ -11,10 +11,10 @@ line_width = 1.5;               % LineWidth
 figure();
 figshift;
 hold on
-plot(errore(:,1,1),(mean(errore(:,2,:),3)),'k','LineWidth',line_width);
+plot(error(:,1,1),(mean(error(:,2,:),3)),'k','LineWidth',line_width);
 hold on
-errorbar(errore(:,1,1)+1,(mean(errore(:,3,:),3)),devst_err(:,3),'b','LineWidth',line_width);
-errorbar(errore(:,1,1),(mean(errore(:,4,:),3)),devst_err(:,4),'r','LineWidth',line_width);
+errorbar(error(:,1,1)+1,(mean(error(:,3,:),3)),devst_err(:,3),'b','LineWidth',line_width);
+errorbar(error(:,1,1),(mean(error(:,4,:),3)),devst_err(:,4),'r','LineWidth',line_width);
 
 % Set various properties
 xlim([0 vett_nodi(end)+2]);

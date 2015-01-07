@@ -1,84 +1,64 @@
-fprintf('Benvenuto,\nAvvio simulazione di apprendimento distribuito, dataset %s\n\n',dataset.name);
-scelta = input('Scegli la modalità della simulazione:\n 1 Addestramento batch usando la k-fold cross-validation\n 2 Addestramento online usando la k-fold cross-validation\n 0 Esci\n:');
+fprintf('Welcome,\nstarting distributed learning simulation, dataset %s\n\n'...
+    ,dataset.name);
+scelta = input('Choose simulation:\n 1 Batch learning via k-fold cross-validation\n 2 Online learning via k-fold cross-validation\n 3 RVFL parameter estimation\n 0 Quit\n:');
 if scelta==0
-    fprintf('Simulazione annullata, esco e pulisco il workspace...\n');
+    fprintf('Simulazion aborted, cleaning workspace...\n');
     clear;
     break;
 else
     switch scelta
         case 1
             if length(dataset.X) > 10^5
-                error('Non posso processare un Big Data in batch!');
+                error('Cant process a big data in batch!');
             else
-                %Questi parametri sono usati all'interno della simulazione
-                %batch
-                K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
-                lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
+                %Set parameters for simulation
+                K=input('\nSet hidden layer dimension (K): ');
+                lambda=input('\nSet regularization parameter (lambda): ');
                 max_iter=500;
 
-                vett_nodi=[1 5 10 15 20 25 30 35 40 45 50];
-                %vett_nodi=2:2:14;
+                %vett_nodi=[1 5 10 15 20 25 30 35 40 45 50];
+                vett_nodi=2:2:14;
 
                 k=5;
                 n_run=15;
-  
-                if strcmp(dataset.type,'R')
-                    simulaz_reg_batch(dataset,k,n_run,K,lambda,max_iter,vett_nodi);
-                else
-                    simulaz_class_batch(dataset,k,n_run,K,lambda,max_iter,vett_nodi);
-                end
+
+                %Run simulation
+                simulaz_batch(dataset,k,n_run,K,lambda,max_iter,vett_nodi);
             end
         case 2
-            %Questi parametri sono usati all'interno della simulazione
-            %online
-            K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
-            lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
+            %Set parameter for simulation
+            K=input('\nSet hidden layer dimension (K): ');
+            lambda=input('\nSet regularization parameter (lambda): ');
             max_iter=500;
             n_nodi=8;
             
             if length(dataset.X) > 10^5
-                fprintf('Questo è un problema di Big Data e quindi non sarà usata la k-fold validation');        
-                train_size=input('\nQuanti dati di training vuoi usare? ');
+                fprintf('This dataset is big so it will not be used k-fold validation');        
+                train_size=input('\nHow many training data you want to use? ');
                 n_run=5;
-                on=800;
-                if strcmp(dataset.type,'R')
-                    simulaz_reg_bigdata(dataset,train_size,n_run,K,lambda,max_iter,n_nodi,on);
-                else
-                    simulaz_class_bigdata(dataset,train_size,n_run,K,lambda,max_iter,n_nodi,on);
-                end
+                on=100;
+                
+                %Run simulation
+                simulaz_bigdata(dataset,train_size,n_run,K,lambda,max_iter,n_nodi,on);
             else
                 k=10;
                 n_run=5;
-                on=80;
-                if strcmp(dataset.type,'R')
-                    simulaz_reg_online(dataset,k,n_run,K,lambda,max_iter,n_nodi,on);
-                else
-                    simulaz_class_online(dataset,k,n_run,K,lambda,max_iter,n_nodi,on);
-                end
+                on=20;
+                
+                %Run simulation
+                simulaz_online(dataset,k,n_run,K,lambda,max_iter,n_nodi,on);
             end
         case 3
-            %Questi parametri sono usati all'interno della simulazione per
-            %il test dei parametri ottimi
+            %Set parameter for simulation
             lambdavec=2.^[-10:10];
             Kmax=1000;
             
             n_fold=3;
             n_run=5;
 
+            %Run simulation
             simulaz_param(dataset,lambdavec,Kmax,n_run,n_fold);
-        case 4
-            K=input('\nInserisci la dimensione dell espansione funzionale (K): ');
-            lambda=input('\nInserisci il valore del parametro di regolarizzazione (lambda): ');
-            
-            n_fold=3;
-            n_run=5;
-            
-            Cvec=logspace(-10,10);
-            alfazerovec=logspace(-10,10);
-            
-            simulaz_param_sgd(K,lambda,dataset,Cvec,alfazerovec,n_run,n_fold);
         otherwise
-            error('Ancora non sono pronto per questo! :(');
+            error('Im not prepared for this! :(');
     end
 end
-clear;

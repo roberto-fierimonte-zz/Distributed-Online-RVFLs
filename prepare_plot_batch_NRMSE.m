@@ -23,7 +23,7 @@ box on;
 grid on;
 
 xlabel('Nodes of network', 'FontSize', font_size, 'FontName', font_name);
-ylabel('NRMSE [%]', 'FontSize', font_size, 'FontName', font_name);
+ylabel('NRMSE', 'FontSize', font_size, 'FontName', font_name);
 
 set(gca, 'FontSize', font_size);
 set(gca, 'FontName', font_name);

@@ -15,12 +15,9 @@ function [] = simulaz_class_bigdata(dataset,train_size,n_run,K,lambda,n_iter,n_n
         centr_sol=zeros(K,m); distr_sol=zeros(K,m); local_sol=zeros(K,m);
         K_centr=net.lambda*eye(K);
             
-        sgdcentr_sol=zeros(K,m); sgdcentr_aus=zeros(K,m);
+        sgd_sol=zeros(K,m);
 
-        for cc=1:n_nodi
-            K_dist(:,:,cc)=net.lambda*eye(K);
-            K_local=K_dist;
-        end
+        K_dist=repmat(K_centr,1,1,n_nodi); K_local=K_dist;
 
         for kk=1:n_online
             if kk==n_online
@@ -41,25 +38,29 @@ function [] = simulaz_class_bigdata(dataset,train_size,n_run,K,lambda,n_iter,n_n
                         distributor = cvpartition(size(Xtemp,1),'kfold',n_nodi);
                     end
                 end
-
+%                 scal=X_train*net.coeff';
+%                 aff=bsxfun(@plus,scal,net.bias');
+%                 H=(exp(-aff)+1).^-1;
+%                 %alfa=1/norm((H'*H)/size(X_train,1)+net.lambda*eye(net.dimension));
+                
                 [centr_sol,K_centr]=rvfl_rls(K_centr,Xtemp,Ytemp,centr_sol,net);
 
                 [distr_sol,K_dist]=distributed_rvfl_rls_seriale(K_dist,Xtemp,Ytemp,distr_sol,net,W,n_iter,distributor);
 
                 [local_sol,K_local]=distributed_rvfl_rls_seriale(K_local,Xtemp,Ytemp,local_sol,net,W,0,distributor);
 
-                [sgdcentr_sol,sgdcentr_aus]=rvfl_sgd(Xtemp,Ytemp,1,1,sgdcentr_sol,sgdcentr_aus,kk,net);
+                sgd_sol=distributed_rvfl_sgd_seriale(Xtemp,Ytemp,sgd_sol,net,W,n_iter,distributor);
 
                 if strcmp(dataset.type,'BC')
                     centr_err(kk)=test_classbin(X_test,Y_test,net,centr_sol);
                     distr_err(kk)=test_classbin(X_test,Y_test,net,distr_sol);
                     local_err(kk)=test_classbin(X_test,Y_test,net,local_sol);
-                    sgdcentr_err(kk)=test_classbin(X_test,Y_test,net,sgdcentr_sol);
+                    sgd_err(kk)=test_classbin(X_test,Y_test,net,sgd_sol);
                 else
                     centr_err(kk)=test_class(X_test,vec2ind(Y_test')',net,centr_sol);
                     distr_err(kk)=test_class(X_test,vec2ind(Y_test')',net,distr_sol);
                     local_err(kk)=test_class(X_test,vec2ind(Y_test')',net,local_sol);
-                    sgdcentr_err(kk)=test_class(X_test,vec2ind(Y_test')',net,sgdcentr_sol);
+                    sgd_err(kk)=test_class(X_test,vec2ind(Y_test')',net,sgd_sol);
                 end
 
                 start=(start+batch);
@@ -70,7 +71,7 @@ function [] = simulaz_class_bigdata(dataset,train_size,n_run,K,lambda,n_iter,n_n
         errore(:,1,jj)=centr_err;
         errore(:,2,jj)=distr_err;
         errore(:,3,jj)=local_err;
-        errore(:,4,jj)=sgdcentr_err;
+        errore(:,4,jj)=sgd_err;
         fprintf('run %i di %i completo\n',jj,n_run);
     end
     

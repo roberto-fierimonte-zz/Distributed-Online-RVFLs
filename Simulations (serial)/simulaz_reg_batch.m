@@ -12,8 +12,9 @@ function [] = simulaz_reg_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
         for jj=1:n_run
             
             c = cvpartition(size(X,1),'kfold',n_fold);
-            net=generate_RVFL(K,size(X,2),lambda);
             generagrafo;
+            net=generate_RVFL(K,size(X,2),lambda);
+            
 
             NRMSE(ind,1)= n_nodi;
             NSR(ind,1)= n_nodi;
@@ -25,12 +26,7 @@ function [] = simulaz_reg_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
                 X_train=X(c.training(ii),:);
                 Y_train=Y(c.training(ii),:);
                 X_test=X(c.test(ii),:);
-                Y_test=Y(c.test(ii),:);
-
-                tic;
-                batch_sol=rvfl(X_train,Y_train,net);
-                time_batch=toc;
-                [batchNRMSE,batchNSR]=test_reg(X_test,Y_test,net,batch_sol);
+                Y_test=Y(c.test(ii),:);                
                 
                 if n_nodi == 1
                     distributor = 0;
@@ -38,18 +34,23 @@ function [] = simulaz_reg_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
                     distributor = cvpartition(size(X_train,1),'K',n_nodi);
                 end
                     tic;
+                    batch_sol=distributed_rvfl_seriale(X_train,Y_train,net,1,n_iter,distributor);
+                    batch_time=toc;
+                    [batchNRMSE,batchNSR]=test_reg(X_test,Y_test,net,batch_sol);
+                    
+                    tic;
                     [distr_sol,iterations]=distributed_rvfl_seriale(X_train,Y_train,net,W,n_iter,distributor);
-                    time_distr=toc;
+                    distr_time=toc;
                     [distrNRMSE,distrNSR]=test_reg(X_test,Y_test,net,distr_sol);
 
                     tic;
                     local_sol=distributed_rvfl_seriale(X_train,Y_train,net,W,0,distributor);
-                    time_test=toc;
+                    local_time=toc;
                     [NRMSEtest,NSRtest]=test_reg(X_test,Y_test,net,local_sol);
 
                 NRMSE(ind,:,(jj-1)*n_fold+ii)=[0,batchNRMSE,distrNRMSE,NRMSEtest];
                 NSR(ind,:,(jj-1)*n_fold+ii)=[0,batchNSR,distrNSR,NSRtest];
-                train_time(ind,:,(jj-1)*n_fold+ii)=[0,time_batch,time_distr/n_nodi,time_test/n_nodi];
+                train_time(ind,:,(jj-1)*n_fold+ii)=[0,batch_time,distr_time/n_nodi,local_time/n_nodi];
                 cons_iter(ind,1+(jj-1)*n_fold+ii)=iterations;
             end
         end

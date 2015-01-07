@@ -15,6 +15,6 @@ function [error] = test_class(X_test,Y_test,net,beta)
     pX=size(X_test,1);
     esp=(exp(-(bsxfun(@plus,X_test*(net.coeff)',net.bias')))+1).^-1;
     exit=(vec2ind((esp*beta)'))';
-    error=1/(pX)*sum(sum(exit~=Y_test));
+    error=100/(pX)*sum(sum(exit~=Y_test));
 end
 

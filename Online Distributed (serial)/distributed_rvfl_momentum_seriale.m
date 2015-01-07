@@ -1,5 +1,5 @@
-function sol = distributed_rvfl_sgd_seriale(X1,Y1,sol_prec,net,W,...
-    max_iter,cvpart,count)
+function [sol,aus] = distributed_rvfl_momentum_seriale(X1,Y1,sol_prec,aus_prec,net,W,alfa,eta,...
+    max_iter,cvpart)
 %DISTRIBUTED_RVFL_SGD definisce un algoritmo per problemi di 
 %regressione e classificazione binaria in sistemi distribuiti in cui per 
 %ogni nodo del sistema la macchina per l'apprendimento è definita da una 
@@ -49,12 +49,13 @@ function sol = distributed_rvfl_sgd_seriale(X1,Y1,sol_prec,net,W,...
         H1=(exp(-aff)+1).^-1;
         
         if size(X1,1)>0
-            %alfa=1/norm((H1'*H1)/pX1+net.lambda*eye(net.dimension));
-            alfa=0.01/count;
+%             alfa=1/norm((H1'*H1)/pX1+net.lambda*eye(net.dimension));
             sol=sol_prec-alfa*((H1'*H1*sol_prec-H1'*Y1)/pX1...
-                +net.lambda*sol_prec);
+                +net.lambda*sol_prec)+eta(sol_prec-aus_prec);
+            aus=sol_prec;
         else
             sol=sol_prec;
+            aus=aus_prec;
         end
     else
         
@@ -70,10 +71,9 @@ function sol = distributed_rvfl_sgd_seriale(X1,Y1,sol_prec,net,W,...
 %Passo 5: calcolo il vettore dei parametri relativo a ogni nodo risolvendo
 %il sistema linare        
             if size(X1local,1)>0
-                %alfa=1/norm((H1'*H1)/size(X1local,1)+net.lambda*eye(net.dimension));
-                alfa=0.01/count;
+%                 alfa=0.5/norm((H1'*H1)/size(X1local,1)+net.lambda*eye(net.dimension));
                 beta(:,:,kk)=sol_prec-alfa*((H1'*H1*sol_prec-H1'*Y1local)...
-                    /size(X1local,1)+net.lambda*sol_prec);
+                    /size(X1local,1)+net.lambda*sol_prec)+eta*(sol_prec-aus_prec);
             else
                 beta(:,:,kk)=sol_prec;
             end
@@ -97,6 +97,7 @@ function sol = distributed_rvfl_sgd_seriale(X1,Y1,sol_prec,net,W,...
                 if all(delta<=10^-6)
                     sol=gamma(:,:,1);
 %                     fprintf('Convergenza raggiunta in %i iterazioni\n',ii);
+                    aus=sol_prec;
                     break
                 end
             end

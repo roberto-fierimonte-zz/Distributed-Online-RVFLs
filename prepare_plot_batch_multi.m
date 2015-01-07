@@ -10,26 +10,30 @@ line_width = 1.5;               % LineWidth
 % Plot instructions
 figure();
 figshift;
-plot(0:size(error,1)-1,(mean(error(:,1,:),3)),'k','LineWidth',line_width);
 hold on
-plot(0:size(error,1)-1,(mean(error(:,2,:),3)),'b','LineWidth',line_width);
-plot(0:size(error,1)-1,(mean(error(:,4,:),3)),'b--','LineWidth',line_width);
-plot(0:size(error,1)-1,(mean(error(:,3,:),3)),'r','LineWidth',line_width);
+plot(x(:),CL(:),'k','LineWidth',line_width);
+hold on
+plot(x(:),FC(:),'k--','LineWidth',line_width);
+plot(x(:),L1(:),'b','LineWidth',line_width);
+plot(x(:),L4(:),'b--','LineWidth',line_width);
+plot(x(:),R25(:),'r','LineWidth',line_width);
+plot(x(:),R50(:),'r--','LineWidth',line_width);
 
 % Set various properties
-xlim([0 size(error,1)-1]);
+xlim([0 x(end)+1]);
 
 box on;
 grid on;
 
-xlabel('Number of iterations', 'FontSize', font_size, 'FontName', font_name);
-ylabel('Error [%]', 'FontSize', font_size, 'FontName', font_name);
+xlabel('Nodes of network', 'FontSize', font_size, 'FontName', font_name);
+ylabel('Number of iterations', 'FontSize', font_size, 'FontName', font_name);
 
 set(gca, 'FontSize', font_size);
 set(gca, 'FontName', font_name);
 
-h_legend=legend('Centralized-RVFL','Consensus-RVFL (RLS)','Consensus-RVFL (LMS)',...
-    'Local-RVFL','Location', 'NorthEast');
+h_legend=legend('Cyclic Lattice','Fully Connected','Linear Topology (K=1)',...
+    'Linear Topology (K=4)','Random Topology (p=0.25)',...
+    'Random Topology (p=0.5)','Location' ,'NorthWest');
 set(h_legend,'FontSize', font_size_leg);
 set(h_legend,'FontName', font_name);
 

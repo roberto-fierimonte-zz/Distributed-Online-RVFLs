@@ -26,7 +26,7 @@ classdef SmallWorldTopology < CyclicLatticeTopology
     methods
         function obj = SmallWorldTopology(N, K, beta)
             obj = obj@CyclicLatticeTopology(N, K);
-            assert(isinrange(beta), 'Lynx:Runtime:Validation', 'The beta parameter of SmallWorldTopology must be in [0, 1]');
+            %assert(isinrange(beta), 'Lynx:Runtime:Validation', 'The beta parameter of SmallWorldTopology must be in [0, 1]');
             obj.beta = beta;
         end
         

@@ -11,7 +11,8 @@ line_width = 1.5;               % LineWidth
 figure();
 figshift;
 hold on
-plot(train_time(:,1,1),(mean(train_time(:,2,:),3)),'k--','LineWidth',line_width);
+plot(train_time(:,1,1),(mean(train_time(:,2,:),3)),'k','LineWidth',line_width);
+%plot(train_time(:,1,1),repmat(mean(mean(train_time(:,2,:),1),3),1,size(train_time,1)),'k','LineWidth',line_width);
 hold on
 plot(train_time(:,1,1),(mean(train_time(:,3,:),3)),'b','LineWidth',line_width);
 plot(train_time(:,1,1),(mean(train_time(:,4,:),3)),'r','LineWidth',line_width);
@@ -28,7 +29,7 @@ ylabel('Training time [s]', 'FontSize', font_size, 'FontName', font_name);
 set(gca, 'FontSize', font_size);
 set(gca, 'FontName', font_name);
 
-h_legend=legend('Centralized','Consensus','Local','Location', 'NorthWest');
+h_legend=legend('Centralized-RVFL','Consensus-RVFL','Local-RVFL','Location', 'East');
 set(h_legend,'FontSize', font_size_leg);
 set(h_legend,'FontName', font_name);
 

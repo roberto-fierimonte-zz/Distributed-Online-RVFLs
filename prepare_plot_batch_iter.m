@@ -14,7 +14,8 @@ hold on
 plot(cons_iter(:,1),(mean(cons_iter(:,2:end),2)),'k','LineWidth',line_width);
 
 % Set various properties
-xlim([0 vett_nodi(end)+2]);
+xlim([0 vett_nodi(end)+1]);
+ylim([0 45]);
 
 box on;
 grid on;

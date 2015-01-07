@@ -1,7 +1,11 @@
-function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
+function [] = simulaz_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi)
     
+%Import dataset
     X=dataset.X; Y=dataset.Y;
-    errore=zeros(size(vett_nodi,2),4,n_run*n_fold);
+
+%Initialize error, training time and Consensus iterations
+    errore=zeros(size(vett_nodi,2),4,n_run*n_fold);    
+    
     train_time=zeros(size(vett_nodi,2),4,n_run*n_fold);
     cons_iter=zeros(size(vett_nodi,2),n_run*n_fold+1);
     for ind=1:size(vett_nodi,2)
@@ -15,13 +19,16 @@ function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi
             else
                 c = cvpartition(size(X,1),'kfold',n_fold);
             end
-            net=generate_RVFL(K,size(X,2),lambda);
+            
+%Generate network topology and RVFL structure            
             generagrafo;
+            net=generate_RVFL(K,size(X,2),lambda);
 
             errore(ind,1)= n_nodi;
             train_time(ind,1)= n_nodi;
             cons_iter(ind,1)=n_nodi;
             
+%Initialize training and test sets            
             for ii = 1:c.NumTestSets
 
                 X_train=X(c.training(ii),:);
@@ -38,6 +45,8 @@ function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi
                         distributor = cvpartition(size(X_train,1),'kfold',n_nodi);
                     end
                 end
+
+%Compute solutions                
                     tic;
                     batch_sol=distributed_rvfl_seriale(X_train,Y_train,net,1,n_iter,distributor);
                     batch_time=toc;
@@ -49,6 +58,8 @@ function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi
                     tic;
                     local_sol=distributed_rvfl_seriale(X_train,Y_train,net,W,0,distributor);
                     local_time=toc;
+                    
+%Compute test error                    
                     if strcmp(dataset.type,'BC')
                         batch_err=test_classbin(X_test,Y_test,net,batch_sol);
                         distr_err=test_classbin(X_test,Y_test,net,distr_sol);
@@ -59,6 +70,7 @@ function [] = simulaz_class_batch(dataset,n_fold,n_run,K,lambda,n_iter,vett_nodi
                         local_err=test_class(X_test,vec2ind(Y_test')',net,local_sol);
                     end
 
+%Save errors, training time and Consensus iterations                  
                 errore(ind,:,(jj-1)*n_fold+ii)=[0,batch_err,distr_err,local_err];
                 train_time(ind,:,(jj-1)*n_fold+ii)=[0,batch_time,distr_time/n_nodi,local_time/n_nodi];
                 cons_iter(ind,1+(jj-1)*n_fold+ii)=iterations;
