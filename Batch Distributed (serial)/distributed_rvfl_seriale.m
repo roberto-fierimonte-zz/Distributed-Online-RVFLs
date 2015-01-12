@@ -19,7 +19,7 @@ function [sol,n_iter] = distributed_rvfl_seriale(X,Y,net,W,max_iter,cvpart)
 %           distributed system
 %
 %Output: sol: (K x m) matrix of the output weights
-%        n_iter: actual number of consensusiterations before the stopping 
+%        n_iter: actual number of consensus iterations before the stopping 
 %           criteron is satisfied
 
 %Step 1: calculate the dimension of input and output patterns and the

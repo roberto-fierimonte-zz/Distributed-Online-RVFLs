@@ -86,8 +86,7 @@ function [sol,K1] = distributed_rvfl_rls(K0,X1,Y1,sol_prec,net,W,n_iter)
         end
     end
     
-%Passo 6: controllo se i nodi hanno raggiunto il consenso e restituisco il
-%vettore dei parametri
+%Step 7: check if consensus is reached and return the global solution
     if n_iter==0
         sol=local{1};
     else
@@ -102,7 +101,7 @@ function [sol,K1] = distributed_rvfl_rls(K0,X1,Y1,sol_prec,net,W,n_iter)
         
         beta_avg_real = mean(beta, 3);
         assert(all(all(all((abs(repmat(beta_avg_real, 1, 1, n_nodes) - ...
-            gamma) <= 10^-6)))), 'Errore: consenso non raggiunto :(');
+            gamma) <= 10^-6)))), 'Error: consensus not reached :(');
 
         sol=gamma(:,:,1);
     end
